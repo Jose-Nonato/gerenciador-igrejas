@@ -1,7 +1,7 @@
 # Gerenciador de Igrejas
 
 Sistema para gestão de igrejas (rol de membros, famílias, histórico eclesiástico e acesso por perfil).
-Hoje contém o backend (`back/`, FastAPI + PostgreSQL); o frontend (React) ficará em `front/`.
+Backend em `back/` (FastAPI + PostgreSQL) e frontend em `front/` (React + TypeScript + Vite).
 
 ## Backend
 
@@ -62,6 +62,14 @@ pytest
 ```
 Os testes usam um banco próprio, `<banco>_test`, que é **recriado a cada execução**
 (o banco de desenvolvimento não é tocado). O usuário do `DATABASE_URL` precisa poder criar bancos.
+
+## Frontend
+```bash
+cd front
+npm install
+npm run dev      # http://localhost:3000
+```
+Veja [front/README.md](front/README.md). O backend precisa estar rodando em `http://localhost:8000` (ou ajuste `VITE_API_URL`).
 
 ## Arquitetura do backend
 `views` (rotas) → `controllers` (regras de negócio) → `repositories` (acesso a dados),
