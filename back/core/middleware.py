@@ -9,9 +9,10 @@ from core.security import decode_token
 
 PUBLIC_PATHS = [
     "/health",
-    "/auth/register",
     "/auth/login",
     "/auth/refresh",
+    "/auth/esqueci-senha",
+    "/auth/redefinir-senha",
     "/docs",
     "/redoc",
     "/openapi.json",

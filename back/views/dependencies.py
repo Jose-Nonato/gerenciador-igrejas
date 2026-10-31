@@ -4,20 +4,77 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from controllers import AuthController, UserController
+from controllers import (
+    AuthController,
+    FamiliaController,
+    IgrejaController,
+    MembroController,
+    RedefinicaoSenhaController,
+    UsuarioController,
+)
 from core.database import get_db
-from models import User
-from repositories import RefreshTokenRepository, UserRepository
+from core.exceptions import ForbiddenError
+from core.mailer import Mailer, get_mailer
+from models import Usuario
+from models.enums import PerfilUsuario
+from repositories import (
+    AuditoriaRepository,
+    EventoRepository,
+    FamiliaRepository,
+    IgrejaRepository,
+    MembroRepository,
+    RefreshTokenRepository,
+    TokenRedefinicaoRepository,
+    UsuarioRepository,
+)
 
 DbSession = Annotated[Session, Depends(get_db)]
+MailerDep = Annotated[Mailer, Depends(get_mailer)]
 
 
 def get_auth_controller(db: DbSession) -> AuthController:
-    return AuthController(UserRepository(db), RefreshTokenRepository(db))
+    return AuthController(UsuarioRepository(db), RefreshTokenRepository(db), AuditoriaRepository(db))
 
 
-def get_user_controller(db: DbSession) -> UserController:
-    return UserController(UserRepository(db))
+def get_redefinicao_controller(db: DbSession, mailer: MailerDep) -> RedefinicaoSenhaController:
+    return RedefinicaoSenhaController(
+        UsuarioRepository(db),
+        TokenRedefinicaoRepository(db),
+        RefreshTokenRepository(db),
+        AuditoriaRepository(db),
+        mailer,
+    )
+
+
+def get_usuario_controller(
+    db: DbSession,
+    redefinicao: Annotated[RedefinicaoSenhaController, Depends(get_redefinicao_controller)],
+) -> UsuarioController:
+    return UsuarioController(
+        UsuarioRepository(db),
+        RefreshTokenRepository(db),
+        AuditoriaRepository(db),
+        redefinicao,
+        MembroRepository(db),
+    )
+
+
+def get_igreja_controller(db: DbSession) -> IgrejaController:
+    return IgrejaController(IgrejaRepository(db))
+
+
+def get_familia_controller(db: DbSession) -> FamiliaController:
+    return FamiliaController(FamiliaRepository(db))
+
+
+def get_membro_controller(db: DbSession) -> MembroController:
+    return MembroController(
+        MembroRepository(db),
+        FamiliaRepository(db),
+        EventoRepository(db),
+        AuditoriaRepository(db),
+        db,
+    )
 
 
 # Só documenta o esquema Bearer no OpenAPI (botão "Authorize" no /docs);
@@ -27,11 +84,43 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 def get_current_user(
     request: Request,
-    controller: Annotated[UserController, Depends(get_user_controller)],
+    controller: Annotated[UsuarioController, Depends(get_usuario_controller)],
     _credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
-) -> User:
+) -> Usuario:
     return controller.get_authenticated_user(getattr(request.state, "user_id", None))
 
 
+CurrentUser = Annotated[Usuario, Depends(get_current_user)]
+
+
+def get_active_user(user: CurrentUser) -> Usuario:
+    """Igual a CurrentUser, mas bloqueia quem ainda precisa trocar a senha."""
+    if user.troca_obrigatoria:
+        raise ForbiddenError("Troca de senha obrigatória")
+    return user
+
+
+ActiveUser = Annotated[Usuario, Depends(get_active_user)]
+
+
+def require_perfil(*perfis: PerfilUsuario):
+    def checker(user: ActiveUser) -> Usuario:
+        if user.perfil not in perfis:
+            raise ForbiddenError("Sem permissão para esta operação")
+        return user
+
+    return checker
+
+
+AdminUser = Annotated[Usuario, Depends(require_perfil(PerfilUsuario.ADMIN))]
+StaffUser = Annotated[
+    Usuario,
+    Depends(require_perfil(PerfilUsuario.ADMIN, PerfilUsuario.PASTOR, PerfilUsuario.PRESBITERO)),
+]
+
 AuthCtrl = Annotated[AuthController, Depends(get_auth_controller)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
+RedefinicaoCtrl = Annotated[RedefinicaoSenhaController, Depends(get_redefinicao_controller)]
+UsuarioCtrl = Annotated[UsuarioController, Depends(get_usuario_controller)]
+IgrejaCtrl = Annotated[IgrejaController, Depends(get_igreja_controller)]
+FamiliaCtrl = Annotated[FamiliaController, Depends(get_familia_controller)]
+MembroCtrl = Annotated[MembroController, Depends(get_membro_controller)]

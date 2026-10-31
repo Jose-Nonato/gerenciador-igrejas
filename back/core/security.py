@@ -1,3 +1,4 @@
+import hashlib
 import secrets
 import uuid
 import jwt
@@ -15,6 +16,15 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed: str) -> bool:
     return password_hash.verify(password, hashed)
+
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    # Token aleatório de alta entropia: SHA-256 simples basta (sem salt/KDF)
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def _encode(payload: dict) -> str:

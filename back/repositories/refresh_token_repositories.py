@@ -14,18 +14,18 @@ class RefreshTokenRepository:
     def get(self, jti: str) -> RefreshToken | None:
         return self.db.get(RefreshToken, jti)
 
-    def add(self, jti: str, user_id: uuid.UUID, expires_at: datetime) -> None:
-        self.db.add(RefreshToken(jti=jti, user_id=user_id, expires_at=expires_at))
+    def add(self, jti: str, usuario_id: uuid.UUID, expires_at: datetime) -> None:
+        self.db.add(RefreshToken(jti=jti, usuario_id=usuario_id, expires_at=expires_at))
         self.db.commit()
 
     def revoke(self, token: RefreshToken) -> None:
         token.revoked = True
         self.db.commit()
 
-    def revoke_all_for_user(self, user_id: uuid.UUID) -> None:
+    def revoke_all_for_user(self, usuario_id: uuid.UUID) -> None:
         self.db.execute(
             update(RefreshToken)
-            .where(RefreshToken.user_id == user_id, RefreshToken.revoked.is_(False))
+            .where(RefreshToken.usuario_id == usuario_id, RefreshToken.revoked.is_(False))
             .values(revoked=True)
         )
         self.db.commit()

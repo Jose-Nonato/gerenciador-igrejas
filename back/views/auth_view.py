@@ -3,15 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from schemas import PasswordChange, RefreshRequest, TokenPair, UserCreate, UserOut
-from views.dependencies import AuthCtrl, CurrentUser
+from schemas import EsqueciSenha, PasswordChange, RedefinirSenha, RefreshRequest, TokenPair
+from views.dependencies import AuthCtrl, CurrentUser, RedefinicaoCtrl
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(data: UserCreate, controller: AuthCtrl):
-    return controller.register(data)
 
 
 @router.post("/login", response_model=TokenPair)
@@ -33,3 +28,13 @@ def change_password(data: PasswordChange, user: CurrentUser, controller: AuthCtr
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(user: CurrentUser, controller: AuthCtrl):
     controller.logout(user)
+
+
+@router.post("/esqueci-senha", status_code=status.HTTP_204_NO_CONTENT)
+def esqueci_senha(data: EsqueciSenha, controller: RedefinicaoCtrl):
+    controller.solicitar(data.email)
+
+
+@router.post("/redefinir-senha", status_code=status.HTTP_204_NO_CONTENT)
+def redefinir_senha(data: RedefinirSenha, controller: RedefinicaoCtrl):
+    controller.redefinir(data.token, data.nova_senha)
