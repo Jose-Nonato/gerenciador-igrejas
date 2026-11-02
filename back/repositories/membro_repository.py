@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, select, text, update
+from sqlalchemy import exists, func, select, text, update
 from sqlalchemy.orm import Session
 
 from models.enums import Oficio, Rol, SituacaoMembro
@@ -59,6 +59,22 @@ class MembroRepository:
         if limit is not None:
             consulta = consulta.limit(limit)
         return list(self.db.scalars(consulta)), total
+
+    def sem_acesso(self, igreja_id: uuid.UUID) -> list[Membro]:
+        """Membros que ainda fazem parte do rol e não têm conta de acesso."""
+        tem_conta = exists().where(Usuario.membro_id == Membro.id)
+        return list(
+            self.db.scalars(
+                select(Membro)
+                .where(
+                    Membro.igreja_id == igreja_id,
+                    Membro.excluido_em.is_(None),
+                    Membro.situacao.in_([SituacaoMembro.ATIVO, SituacaoMembro.EM_DISCIPLINA]),
+                    ~tem_conta,
+                )
+                .order_by(Membro.nome, Membro.id)
+            )
+        )
 
     def buscar_elegiveis(self, igreja_id: uuid.UUID, q: str, limit: int) -> list[Membro]:
         """Membros que ainda fazem parte do rol (ativos ou em disciplina), por parte do nome."""

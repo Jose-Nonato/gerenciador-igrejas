@@ -9,6 +9,8 @@ from models.enums import PerfilUsuario, StatusUsuario
 class UsuarioCreate(BaseModel):
     email: EmailStr
     perfil: PerfilUsuario = PerfilUsuario.USUARIO
+    # Convidar um membro do rol já deixa a conta ligada a ele
+    membro_id: uuid.UUID | None = None
 
 
 class UsuarioUpdate(BaseModel):
@@ -64,3 +66,23 @@ class EsqueciSenha(BaseModel):
 class RedefinirSenha(BaseModel):
     token: str = Field(max_length=256)
     nova_senha: str = Field(min_length=8, max_length=128)
+
+
+class ConviteEmMassaRequest(BaseModel):
+    """Convida os membros do rol que têm e-mail e ainda não têm conta."""
+
+    simular: bool = Field(
+        default=True, description="Só conta quem seria convidado, sem criar contas nem enviar e-mails"
+    )
+    limite: int = Field(
+        default=50, ge=1, le=50, description="Máximo de convites por chamada; repita para os restantes"
+    )
+
+
+class ConviteEmMassaOut(BaseModel):
+    simulacao: bool
+    elegiveis: int = Field(description="Membros no rol, sem conta e com e-mail livre")
+    convidados: int
+    restantes: int = Field(description="Elegíveis ainda sem convite (chame de novo)")
+    sem_email: int = Field(description="Membros no rol, sem conta e sem e-mail cadastrado")
+    email_em_uso: int = Field(description="Sem conta, mas o e-mail já pertence a outro usuário")

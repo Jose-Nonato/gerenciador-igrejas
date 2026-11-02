@@ -6,6 +6,7 @@ import type {
   AtualizacaoUsuario,
   Comunicado,
   ComunicadoPage,
+  ConviteEmMassa,
   Evento,
   Familia,
   FiltroComunicados,
@@ -51,8 +52,12 @@ export const authApi = {
 
 export const usuariosApi = {
   listar: () => api<Usuario[]>('/usuarios'),
-  convidar: (email: string, perfil: Perfil) =>
-    api<Usuario>('/usuarios', { method: 'POST', json: { email, perfil } }),
+  /** Com `membroId`, a conta já nasce ligada ao membro */
+  convidar: (email: string, perfil: Perfil, membroId?: string) =>
+    api<Usuario>('/usuarios', { method: 'POST', json: { email, perfil, membro_id: membroId ?? null } }),
+  /** Convida os membros do rol com e-mail e sem conta. `simular` só conta. */
+  convidarEmMassa: (simular: boolean, limite = 50) =>
+    api<ConviteEmMassa>('/usuarios/convites-em-massa', { method: 'POST', json: { simular, limite } }),
   atualizar: (id: string, dados: AtualizacaoUsuario) =>
     api<Usuario>(`/usuarios/${id}`, { method: 'PATCH', json: dados }),
   reenviarConvite: (id: string) => api<void>(`/usuarios/${id}/convite`, { method: 'POST' }),

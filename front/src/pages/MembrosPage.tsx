@@ -7,7 +7,7 @@ import { useAuth } from '../auth/useAuth'
 import { DialogoConfirmar } from '../components/DialogoConfirmar'
 import { formatarData } from '../formatar'
 import { podeExcluirMembro } from '../permissoes'
-import { OFICIO, ROL, SITUACAO } from '../rotulos'
+import { OFICIO, PERFIL, ROL, SITUACAO, STATUS_USUARIO } from '../rotulos'
 
 const POR_PAGINA = 20
 
@@ -174,6 +174,7 @@ export function MembrosPage() {
               <th>Ofício</th>
               <th>Nascimento</th>
               <th>Telefone</th>
+              <th>Acesso</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -187,6 +188,18 @@ export function MembrosPage() {
                 <td>{OFICIO[m.oficio]}</td>
                 <td>{formatarData(m.data_nascimento)}</td>
                 <td>{m.telefone ?? '—'}</td>
+                <td>
+                  {m.acesso ? (
+                    <span
+                      className={`selo status-${m.acesso.status}`}
+                      title={`${m.acesso.email} · ${PERFIL[m.acesso.perfil]}`}
+                    >
+                      {STATUS_USUARIO[m.acesso.status]}
+                    </span>
+                  ) : (
+                    <span className="ajuda">Sem acesso</span>
+                  )}
+                </td>
                 <td className="acoes">
                   <Link to={`/membros/${m.id}/editar`} className="botao secundario pequeno" aria-label={`Editar ${m.nome}`}>
                     Editar
@@ -206,7 +219,7 @@ export function MembrosPage() {
             ))}
             {dados && dados.items.length === 0 && (
               <tr>
-                <td colSpan={8} className="vazio">Nenhum membro encontrado.</td>
+                <td colSpan={9} className="vazio">Nenhum membro encontrado.</td>
               </tr>
             )}
           </tbody>

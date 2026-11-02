@@ -1,18 +1,23 @@
 import secrets
 import uuid
 
+from sqlalchemy.exc import IntegrityError
+
 from core import security
 from core.exceptions import ConflictError, ForbiddenError, NotFoundError, UnauthorizedError
 from controllers.redefinicao_senha_controller import RedefinicaoSenhaController
-from models import Usuario
-from models.enums import StatusUsuario
+from models import Membro, Usuario
+from models.enums import PerfilUsuario, SituacaoMembro, StatusUsuario
 from repositories import (
     AuditoriaRepository,
     MembroRepository,
     RefreshTokenRepository,
     UsuarioRepository,
 )
-from schemas import MeuPerfilUpdate, UsuarioCreate, UsuarioUpdate
+from schemas import ConviteEmMassaRequest, MeuPerfilUpdate, UsuarioCreate, UsuarioUpdate
+
+# Quem ainda faz parte do rol pode receber convite
+_NO_ROL = {SituacaoMembro.ATIVO, SituacaoMembro.EM_DISCIPLINA}
 
 # Estados que o administrador pode atribuir; convite_pendente só nasce da criação
 _STATUS_ATRIBUIVEIS = {StatusUsuario.ATIVO, StatusUsuario.BLOQUEADO, StatusUsuario.DESATIVADO}
@@ -48,17 +53,89 @@ class UsuarioController:
         email = data.email.lower()
         if self.users.get_by_email(email):
             raise ConflictError("E-mail já cadastrado")
+        membro = None
+        if data.membro_id is not None:
+            membro = self.membros.get_in_church(ator.igreja_id, data.membro_id)
+            if membro is None:
+                raise NotFoundError("Membro não encontrado")
+            if membro.situacao not in _NO_ROL:
+                raise ConflictError("Este membro não faz mais parte do rol")
+            if self.users.get_by_membro(membro.id) is not None:
+                raise ConflictError("Este membro já tem acesso ao sistema")
+        return self._criar_convite(ator, email, data.perfil, membro)
+
+    def convidar_em_massa(self, ator: Usuario, data: ConviteEmMassaRequest) -> dict:
+        """Convida os membros do rol que têm e-mail e ainda não têm conta (perfil usuário).
+
+        Com `simular`, só conta. Cada convite sai por e-mail, então a execução é limitada por
+        chamada (`limite`); o resultado informa quantos faltam.
+        """
+        elegiveis: list[tuple[Membro, str]] = []
+        sem_email = email_em_uso = 0
+        vistos: set[str] = set()
+        for membro in self.membros.sem_acesso(ator.igreja_id):
+            email = (membro.email or "").strip().lower()
+            if not email:
+                sem_email += 1
+            elif email in vistos or self.users.get_by_email(email) is not None:
+                email_em_uso += 1  # inclui dois membros com o mesmo e-mail
+            else:
+                vistos.add(email)
+                elegiveis.append((membro, email))
+
+        convidados = 0
+        if not data.simular:
+            # Hash de uma senha aleatória que ninguém conhece: calculá-lo uma vez por lote evita
+            # um Argon2 (lento de propósito) por conta. Cada convidado define a própria senha
+            # pelo link do convite, e isso substitui o hash.
+            hash_descartado = security.hash_password(secrets.token_urlsafe(32))
+            for membro, email in elegiveis[: data.limite]:
+                try:
+                    self._criar_convite(
+                        ator, email, PerfilUsuario.USUARIO, membro,
+                        detalhes={"via": "convite_em_massa"}, senha_hash=hash_descartado,
+                    )
+                except IntegrityError:
+                    # corrida com outro cadastro do mesmo e-mail: pula este e segue
+                    self.users.db.rollback()
+                    email_em_uso += 1
+                    continue
+                convidados += 1
+            self.audit.registrar(
+                ator.igreja_id, ator.id, "convite_em_massa", "usuario", None,
+                {"convidados": convidados, "sem_email": sem_email, "email_em_uso": email_em_uso},
+            )
+        return {
+            "simulacao": data.simular,
+            "elegiveis": len(elegiveis),
+            "convidados": convidados,
+            "restantes": len(elegiveis) - convidados,
+            "sem_email": sem_email,
+            "email_em_uso": email_em_uso,
+        }
+
+    def _criar_convite(
+        self,
+        ator: Usuario,
+        email: str,
+        perfil: PerfilUsuario,
+        membro: Membro | None,
+        detalhes: dict | None = None,
+        senha_hash: str | None = None,
+    ) -> Usuario:
         # Senha aleatória descartada: o convidado define a própria pelo link do convite
         user = self.users.create(
             ator.igreja_id,
             email,
-            security.hash_password(secrets.token_urlsafe(32)),
-            perfil=data.perfil,
+            senha_hash or security.hash_password(secrets.token_urlsafe(32)),
+            perfil=perfil,
             status=StatusUsuario.CONVITE_PENDENTE,
+            membro_id=membro.id if membro else None,
         )
         self.audit.registrar(
             ator.igreja_id, ator.id, "usuario_criado", "usuario", user.id,
-            {"email": email, "perfil": data.perfil.value},
+            {"email": email, "perfil": perfil.value,
+             **({"membro": membro.nome} if membro else {}), **(detalhes or {})},
         )
         self.redefinicao.enviar_convite(user)
         return user

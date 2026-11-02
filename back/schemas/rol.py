@@ -7,9 +7,11 @@ from models.enums import (
     EstadoCivil,
     FormaRecepcao,
     Oficio,
+    PerfilUsuario,
     Rol,
     Sexo,
     SituacaoMembro,
+    StatusUsuario,
     TipoEventoEclesiastico,
 )
 
@@ -78,6 +80,17 @@ class MembroUpdate(BaseModel):
     _data = field_validator("data_nascimento")(_nao_futura)
 
 
+class AcessoOut(BaseModel):
+    """Conta de acesso ao sistema ligada ao membro."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    email: str
+    perfil: PerfilUsuario
+    status: StatusUsuario
+
+
 class MembroOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -96,6 +109,7 @@ class MembroOut(BaseModel):
     oficio: Oficio
     criado_em: datetime
     atualizado_em: datetime
+    acesso: AcessoOut | None = None
 
 
 class FiltroMembros(BaseModel):

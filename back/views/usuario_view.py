@@ -2,7 +2,14 @@ import uuid
 
 from fastapi import APIRouter, status
 
-from schemas import MeuPerfilUpdate, UsuarioCreate, UsuarioOut, UsuarioUpdate
+from schemas import (
+    ConviteEmMassaOut,
+    ConviteEmMassaRequest,
+    MeuPerfilUpdate,
+    UsuarioCreate,
+    UsuarioOut,
+    UsuarioUpdate,
+)
 from views.dependencies import ActiveUser, AdminUser, CurrentUser, StaffUser, UsuarioCtrl
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
@@ -26,6 +33,13 @@ def listar(ator: StaffUser, controller: UsuarioCtrl):
 @router.post("", response_model=UsuarioOut, status_code=status.HTTP_201_CREATED)
 def convidar(data: UsuarioCreate, ator: AdminUser, controller: UsuarioCtrl):
     return controller.convidar(ator, data)
+
+
+# Antes de "/{usuario_id}", senão "convites-em-massa" seria lido como id
+@router.post("/convites-em-massa", response_model=ConviteEmMassaOut)
+def convidar_em_massa(data: ConviteEmMassaRequest, ator: AdminUser, controller: UsuarioCtrl):
+    """Convida os membros do rol que têm e-mail e ainda não têm conta. Por padrão só simula."""
+    return controller.convidar_em_massa(ator, data)
 
 
 @router.patch("/{usuario_id}", response_model=UsuarioOut)

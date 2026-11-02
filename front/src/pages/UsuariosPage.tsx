@@ -4,6 +4,7 @@ import { membrosApi, usuariosApi } from '../api/endpoints'
 import type { Usuario } from '../api/types'
 import { useAuth } from '../auth/useAuth'
 import { Carregando } from '../components/Carregando'
+import { ConviteEmMassaDialogo } from '../components/ConviteEmMassaDialogo'
 import { ConvidarUsuarioDialogo } from '../components/ConvidarUsuarioDialogo'
 import { GerenciarUsuarioDialogo } from '../components/GerenciarUsuarioDialogo'
 import { formatarDataHora } from '../formatar'
@@ -17,6 +18,8 @@ export function UsuariosPage() {
   const [erro, setErro] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
   const [convidando, setConvidando] = useState(false)
+  const [convidandoMembros, setConvidandoMembros] = useState(false)
+  const [versao, setVersao] = useState(0) // muda para recarregar a lista
   const [editando, setEditando] = useState<Usuario | null>(null)
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export function UsuariosPage() {
     return () => {
       ativo = false
     }
-  }, [])
+  }, [versao])
 
   if (erro) return <p className="aviso erro" role="alert">{erro}</p>
   if (!usuarios) return <Carregando />
@@ -54,16 +57,28 @@ export function UsuariosPage() {
       <div className="titulo-linha">
         <h1>Usuários</h1>
         {ehAdmin && (
-          <button
-            type="button"
-            className="botao"
-            onClick={() => {
-              setAviso(null)
-              setConvidando(true)
-            }}
-          >
-            Convidar usuário
-          </button>
+          <div className="acoes-form">
+            <button
+              type="button"
+              className="botao secundario"
+              onClick={() => {
+                setAviso(null)
+                setConvidandoMembros(true)
+              }}
+            >
+              Convidar membros do rol
+            </button>
+            <button
+              type="button"
+              className="botao"
+              onClick={() => {
+                setAviso(null)
+                setConvidando(true)
+              }}
+            >
+              Convidar usuário
+            </button>
+          </div>
         )}
       </div>
       {!ehAdmin && <p className="subtitulo">Somente o administrador pode convidar e alterar usuários.</p>}
@@ -112,6 +127,18 @@ export function UsuariosPage() {
           </tbody>
         </table>
       </div>
+
+      {convidandoMembros && (
+        <ConviteEmMassaDialogo
+          onFechar={(mudou) => {
+            setConvidandoMembros(false)
+            if (mudou) {
+              setAviso('Convites enviados. Os novos usuários aparecem abaixo como "Convite pendente".')
+              setVersao((v) => v + 1)
+            }
+          }}
+        />
+      )}
 
       {convidando && (
         <ConvidarUsuarioDialogo

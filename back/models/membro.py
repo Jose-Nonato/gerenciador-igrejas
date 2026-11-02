@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, ForeignKey, Index, Integer, String, Text, func, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
 from models.base import IgrejaScoped, UUIDPk
@@ -50,3 +50,18 @@ class Membro(UUIDPk, IgrejaScoped, Base):
     atualizado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    # Conta de acesso ligada a este membro (no máximo uma). Só leitura: o vínculo é gravado
+    # pelo lado do usuário (`usuario.membro_id`).
+    usuario: Mapped["Usuario | None"] = relationship(
+        "Usuario",
+        primaryjoin="Membro.id == foreign(Usuario.membro_id)",
+        uselist=False,
+        viewonly=True,
+        lazy="selectin",
+    )
+
+    @property
+    def acesso(self) -> "Usuario | None":
+        """Resumo do acesso ao sistema (ou None se o membro não tem conta)."""
+        return self.usuario

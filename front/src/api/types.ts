@@ -42,6 +42,15 @@ export interface Membro {
   oficio: Oficio
   criado_em: string
   atualizado_em: string
+  /** Conta de acesso ligada ao membro; null = sem acesso ao sistema */
+  acesso: AcessoMembro | null
+}
+
+export interface AcessoMembro {
+  id: string
+  email: string
+  perfil: Perfil
+  status: StatusUsuario
 }
 
 export interface MembroPage {
@@ -294,4 +303,15 @@ export interface FiltroComunicados {
   status?: StatusPost
   limit?: number
   offset?: number
+}
+
+export interface ConviteEmMassa {
+  simulacao: boolean
+  /** Membros no rol, sem conta e com e-mail livre */
+  elegiveis: number
+  convidados: number
+  /** Elegíveis ainda sem convite (chame de novo) */
+  restantes: number
+  sem_email: number
+  email_em_uso: number
 }

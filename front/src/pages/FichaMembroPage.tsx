@@ -3,11 +3,13 @@ import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { membrosApi } from '../api/endpoints'
 import type { Evento, Membro, NovoEvento } from '../api/types'
+import { useAuth } from '../auth/useAuth'
 import { Carregando } from '../components/Carregando'
+import { ConvidarMembroDialogo } from '../components/ConvidarMembroDialogo'
 import { EventoForm } from '../components/EventoForm'
 import { formatarData } from '../formatar'
 import { eventosPermitidos } from '../regrasEventos'
-import { ESTADO_CIVIL, FORMA_RECEPCAO, OFICIO, ROL, SEXO, SITUACAO, TIPO_EVENTO } from '../rotulos'
+import { ESTADO_CIVIL, FORMA_RECEPCAO, OFICIO, PERFIL, ROL, SEXO, SITUACAO, STATUS_USUARIO, TIPO_EVENTO } from '../rotulos'
 
 function Dado({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
@@ -30,6 +32,9 @@ function detalhesDoEvento(ev: Evento): string[] {
 
 export function FichaMembroPage() {
   const { id } = useParams<{ id: string }>()
+  const { usuario } = useAuth()
+  const ehAdmin = usuario?.perfil === 'admin'
+  const [convidando, setConvidando] = useState(false)
   const [membro, setMembro] = useState<Membro | null>(null)
   const [eventos, setEventos] = useState<Evento[]>([])
   const [erroCarga, setErroCarga] = useState<string | null>(null)
@@ -72,6 +77,7 @@ export function FichaMembroPage() {
   if (!membro) return <Carregando />
 
   const podeRegistrar = eventosPermitidos(membro).length > 0
+  const noRol = membro.situacao === 'ativo' || membro.situacao === 'em_disciplina'
   // Do mais recente para o mais antigo (o backend devolve em ordem cronológica)
   const linhaDoTempo = [...eventos].reverse()
 
@@ -103,6 +109,39 @@ export function FichaMembroPage() {
           <Dado rotulo="E-mail">{membro.email}</Dado>
           <Dado rotulo="Endereço">{membro.endereco}</Dado>
         </dl>
+      </section>
+
+      <section aria-labelledby="titulo-acesso" className="cartao">
+        <div className="titulo-linha">
+          <h2 id="titulo-acesso">Acesso ao sistema</h2>
+          {!membro.acesso && ehAdmin && noRol && (
+            <button
+              type="button"
+              className="botao"
+              onClick={() => {
+                setAviso(null)
+                setConvidando(true)
+              }}
+            >
+              Convidar para acessar
+            </button>
+          )}
+        </div>
+        {membro.acesso ? (
+          <dl className="dados">
+            <Dado rotulo="E-mail da conta">{membro.acesso.email}</Dado>
+            <Dado rotulo="Perfil">{PERFIL[membro.acesso.perfil]}</Dado>
+            <Dado rotulo="Situação da conta">
+              <span className={`selo status-${membro.acesso.status}`}>{STATUS_USUARIO[membro.acesso.status]}</span>
+            </Dado>
+          </dl>
+        ) : (
+          <p className="vazio-texto">
+            {noRol
+              ? 'Sem acesso: este membro ainda não tem conta no sistema.'
+              : 'Sem acesso: o membro não faz mais parte do rol.'}
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="titulo-historico" className="cartao">
@@ -147,6 +186,21 @@ export function FichaMembroPage() {
           </ol>
         )}
       </section>
+
+      {convidando && (
+        <ConvidarMembroDialogo
+          membro={membro}
+          onFechar={() => setConvidando(false)}
+          onConvidado={(conta) => {
+            setMembro({
+              ...membro,
+              acesso: { id: conta.id, email: conta.email, perfil: conta.perfil, status: conta.status },
+            })
+            setConvidando(false)
+            setAviso(`Convite enviado para ${conta.email}.`)
+          }}
+        />
+      )}
     </section>
   )
 }

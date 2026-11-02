@@ -45,6 +45,7 @@ class UsuarioRepository:
         perfil: PerfilUsuario = PerfilUsuario.USUARIO,
         status: StatusUsuario = StatusUsuario.ATIVO,
         troca_obrigatoria: bool = False,
+        membro_id: uuid.UUID | None = None,
     ) -> Usuario:
         usuario = Usuario(
             igreja_id=igreja_id,
@@ -53,6 +54,7 @@ class UsuarioRepository:
             perfil=perfil,
             status=status,
             troca_obrigatoria=troca_obrigatoria,
+            membro_id=membro_id,
         )
         self.db.add(usuario)
         self.db.commit()
