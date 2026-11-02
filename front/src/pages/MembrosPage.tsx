@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { membrosApi } from '../api/endpoints'
-import type { FiltroMembros, MembroPage, Rol, SituacaoMembro } from '../api/types'
+import type { FiltroMembros, Membro, MembroPage, Rol, SituacaoMembro } from '../api/types'
+import { useAuth } from '../auth/useAuth'
+import { DialogoConfirmar } from '../components/DialogoConfirmar'
+import { podeExcluirMembro } from '../permissoes'
 import { OFICIO, ROL, SITUACAO } from '../rotulos'
 
 const POR_PAGINA = 20
@@ -13,6 +17,15 @@ function formatarData(iso: string | null): string {
 }
 
 export function MembrosPage() {
+  const avisoRota = (useLocation().state as { aviso?: string } | null)?.aviso
+  const { usuario } = useAuth()
+  const podeExcluir = podeExcluirMembro(usuario)
+  const [avisoLocal, setAvisoLocal] = useState<string | null>(null)
+  const aviso = avisoLocal ?? avisoRota
+  const [versao, setVersao] = useState(0) // muda depois de excluir, para recarregar a lista
+  const [alvo, setAlvo] = useState<Membro | null>(null)
+  const [excluindo, setExcluindo] = useState(false)
+  const [erroExclusao, setErroExclusao] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
   const [q, setQ] = useState('')
   const [rol, setRol] = useState<Rol | ''>('')
@@ -38,7 +51,7 @@ export function MembrosPage() {
   }
 
   // Carregando = o resultado guardado ainda é de outra consulta
-  const chave = JSON.stringify([q, rol, situacao, pagina])
+  const chave = JSON.stringify([q, rol, situacao, pagina, versao])
   const carregando = resultado?.chave !== chave
   const dados = resultado?.dados ?? null
   const erro = (resultado?.chave === chave ? resultado.erro : undefined) ?? erroExportar
@@ -60,6 +73,24 @@ export function MembrosPage() {
       ativo = false
     }
   }, [chave, q, rol, situacao, pagina])
+
+  async function excluir() {
+    if (!alvo) return
+    setExcluindo(true)
+    setErroExclusao(null)
+    try {
+      await membrosApi.excluir(alvo.id)
+      setAvisoLocal(`${alvo.nome} foi excluído(a) do rol.`)
+      setAlvo(null)
+      // Excluiu o único item da última página: volta uma página
+      if (dados && dados.items.length === 1 && pagina > 0) setPagina((p) => p - 1)
+      setVersao((v) => v + 1)
+    } catch (err) {
+      setErroExclusao(err instanceof ApiError ? err.message : 'Não foi possível excluir o membro.')
+    } finally {
+      setExcluindo(false)
+    }
+  }
 
   async function exportar() {
     setExportando(true)
@@ -86,10 +117,15 @@ export function MembrosPage() {
     <section className="pagina">
       <div className="titulo-linha">
         <h1>Rol de membros</h1>
-        <button type="button" className="botao secundario" onClick={exportar} disabled={exportando}>
-          {exportando ? 'Exportando…' : 'Exportar CSV'}
-        </button>
+        <div className="acoes-form">
+          <button type="button" className="botao secundario" onClick={exportar} disabled={exportando}>
+            {exportando ? 'Exportando…' : 'Exportar CSV'}
+          </button>
+          <Link to="/membros/novo" className="botao">Adicionar membro</Link>
+        </div>
       </div>
+
+      {aviso && <p className="aviso sucesso" role="status">{aviso}</p>}
 
       <div className="filtros">
         <div className="campo">
@@ -143,6 +179,7 @@ export function MembrosPage() {
               <th>Ofício</th>
               <th>Nascimento</th>
               <th>Telefone</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -155,11 +192,26 @@ export function MembrosPage() {
                 <td>{OFICIO[m.oficio]}</td>
                 <td>{formatarData(m.data_nascimento)}</td>
                 <td>{m.telefone ?? '—'}</td>
+                <td className="acoes">
+                  <Link to={`/membros/${m.id}/editar`} className="botao secundario pequeno" aria-label={`Editar ${m.nome}`}>
+                    Editar
+                  </Link>
+                  {podeExcluir && (
+                    <button
+                      type="button"
+                      className="botao secundario pequeno"
+                      aria-label={`Excluir ${m.nome}`}
+                      onClick={() => setAlvo(m)}
+                    >
+                      Excluir
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {dados && dados.items.length === 0 && (
               <tr>
-                <td colSpan={7} className="vazio">Nenhum membro encontrado.</td>
+                <td colSpan={8} className="vazio">Nenhum membro encontrado.</td>
               </tr>
             )}
           </tbody>
@@ -178,6 +230,25 @@ export function MembrosPage() {
           </button>
         </div>
       </div>
+
+      <DialogoConfirmar
+        aberto={alvo !== null}
+        titulo="Excluir este membro?"
+        rotuloConfirmar="Excluir membro"
+        ocupado={excluindo}
+        erro={erroExclusao}
+        onConfirmar={excluir}
+        onCancelar={() => {
+          setAlvo(null)
+          setErroExclusao(null)
+        }}
+      >
+        <p>
+          <strong>{alvo?.nome}</strong> (nº {alvo?.numero_rol ?? '—'}) será removido(a) do rol. Use para cadastros
+          feitos por engano; para transferência ou falecimento, registre o evento eclesiástico. O histórico fica
+          preservado.
+        </p>
+      </DialogoConfirmar>
     </section>
   )
 }

@@ -129,6 +129,22 @@ class MembroController:
         self.db.refresh(membro)
         return membro
 
+    def excluir(self, ator: Usuario, membro_id: uuid.UUID) -> None:
+        """Exclusão lógica: some do rol e das buscas, mas o histórico e a auditoria ficam."""
+        membro = self.get(ator, membro_id)
+        contas = self.membros.excluir(membro)
+        self.audit.registrar(
+            ator.igreja_id, ator.id, "membro_excluido", "membro", membro.id,
+            {
+                "nome": membro.nome,
+                "numero_rol": membro.numero_rol,
+                "situacao": membro.situacao.value,
+                "contas_desvinculadas": contas,
+            },
+            commit=False,
+        )
+        self._commit()
+
     def registrar_evento(
         self, ator: Usuario, membro_id: uuid.UUID, data: EventoCreate
     ) -> tuple[EventoEclesiastico, Membro]:

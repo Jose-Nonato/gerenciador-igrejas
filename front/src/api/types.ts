@@ -59,3 +59,28 @@ export interface FiltroMembros {
   limit?: number
   offset?: number
 }
+
+export interface Familia {
+  id: string
+  nome: string
+  endereco: string | null
+}
+
+/** Corpo de POST /membros; campos opcionais vazios devem ser omitidos ou null. */
+export interface NovoMembro {
+  nome: string
+  rol: Rol
+  familia_id?: string | null
+  numero_rol?: number | null
+  data_nascimento?: string | null
+  sexo?: Sexo | null
+  estado_civil?: EstadoCivil | null
+  telefone?: string | null
+  email?: string | null
+  endereco?: string | null
+  situacao?: SituacaoMembro
+  oficio?: Oficio
+}
+
+/** Corpo de PATCH /membros/{id}: rol, situação e ofício só mudam por eventos eclesiásticos. */
+export type AtualizacaoMembro = Omit<NovoMembro, 'rol' | 'situacao' | 'oficio'>

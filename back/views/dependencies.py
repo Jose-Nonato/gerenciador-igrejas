@@ -118,6 +118,9 @@ StaffUser = Annotated[
     Depends(require_perfil(PerfilUsuario.ADMIN, PerfilUsuario.PASTOR, PerfilUsuario.PRESBITERO)),
 ]
 
+# Ações destrutivas no rol: só quem responde pela igreja
+GestorUser = Annotated[Usuario, Depends(require_perfil(PerfilUsuario.ADMIN, PerfilUsuario.PASTOR))]
+
 AuthCtrl = Annotated[AuthController, Depends(get_auth_controller)]
 RedefinicaoCtrl = Annotated[RedefinicaoSenhaController, Depends(get_redefinicao_controller)]
 UsuarioCtrl = Annotated[UsuarioController, Depends(get_usuario_controller)]

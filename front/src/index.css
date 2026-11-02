@@ -110,6 +110,32 @@ td.vazio { text-align: center; color: var(--texto-suave); padding: 2rem; }
 .paginacao { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; color: var(--texto-suave); }
 .paginacao > div { display: flex; align-items: center; gap: .75rem; }
 
+/* cadastro */
+.pagina.estreita-media { max-width: 720px; }
+.migalha { margin: 0 0 .75rem; font-size: .9rem; }
+fieldset { border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); padding: 1rem 1rem .25rem; margin: 0 0 1rem; min-width: 0; }
+legend { font-weight: 700; padding: 0 .4rem; }
+.grade { display: grid; gap: 0 1rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.acoes-form { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+a.botao { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+a.botao.secundario { color: var(--texto); }
+fieldset > p.ajuda { margin: 0 0 1rem; font-size: .85rem; }
+
+/* exclusão */
+.botao.perigo { background: var(--erro); color: #fff; }
+.botao.perigo:hover:not(:disabled) { background: var(--erro); filter: brightness(1.1); }
+@media (prefers-color-scheme: dark) { .botao.perigo { color: #1b212a; } }
+.zona-perigo { margin-top: 2rem; padding: 1rem; border: 1px solid var(--erro); border-radius: var(--raio); }
+.zona-perigo h2 { font-size: 1.1rem; margin: 0 0 .5rem; color: var(--erro); }
+.zona-perigo p { margin: 0 0 1rem; font-size: .9rem; color: var(--texto-suave); }
+.dialogo { max-width: 460px; width: calc(100% - 2rem); padding: 1.5rem; border: 1px solid var(--borda); border-radius: 12px; background: var(--superficie); color: var(--texto); }
+.dialogo::backdrop { background: rgba(0, 0, 0, .55); }
+.dialogo h2 { margin: 0 0 .75rem; font-size: 1.2rem; }
+.dialogo-corpo { margin-bottom: 1rem; }
+.dialogo-corpo p { margin: 0; }
+td.acoes { display: flex; gap: .5rem; }
+.botao.pequeno { min-height: 36px; padding: .3rem .75rem; font-size: .85rem; }
+
 @media (max-width: 600px) {
   .usuario { width: 100%; justify-content: space-between; }
 }

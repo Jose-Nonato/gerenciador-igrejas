@@ -1,11 +1,12 @@
 import uuid
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select, text, update
 from sqlalchemy.orm import Session
 
 from models.enums import Oficio, Rol, SituacaoMembro
 from models.evento_eclesiastico import EventoEclesiastico
 from models.membro import Membro
+from models.usuario import Usuario
 
 # Os métodos de escrita deste módulo NÃO fazem commit: registrar um evento altera
 # evento, membro e auditoria na mesma transação, e o commit fica com o controller.
@@ -17,7 +18,11 @@ class MembroRepository:
 
     def get_in_church(self, igreja_id: uuid.UUID, membro_id: uuid.UUID) -> Membro | None:
         return self.db.scalar(
-            select(Membro).where(Membro.id == membro_id, Membro.igreja_id == igreja_id)
+            select(Membro).where(
+                Membro.id == membro_id,
+                Membro.igreja_id == igreja_id,
+                Membro.excluido_em.is_(None),
+            )
         )
 
     def search(
@@ -32,7 +37,7 @@ class MembroRepository:
         limit: int | None = None,
         offset: int = 0,
     ) -> tuple[list[Membro], int]:
-        filtros = [Membro.igreja_id == igreja_id]
+        filtros = [Membro.igreja_id == igreja_id, Membro.excluido_em.is_(None)]
         if q:
             filtros.append(Membro.nome.icontains(q, autoescape=True))
         if rol:
@@ -59,7 +64,9 @@ class MembroRepository:
         self, igreja_id: uuid.UUID, numero: int, ignorar_id: uuid.UUID | None = None
     ) -> bool:
         consulta = select(Membro.id).where(
-            Membro.igreja_id == igreja_id, Membro.numero_rol == numero
+            Membro.igreja_id == igreja_id,
+            Membro.numero_rol == numero,
+            Membro.excluido_em.is_(None),
         )
         if ignorar_id:
             consulta = consulta.where(Membro.id != ignorar_id)
@@ -73,7 +80,9 @@ class MembroRepository:
                 {"chave": f"numero_rol:{igreja_id}"},
             )
             maior = self.db.scalar(
-                select(func.max(Membro.numero_rol)).where(Membro.igreja_id == igreja_id)
+                select(func.max(Membro.numero_rol)).where(
+                    Membro.igreja_id == igreja_id, Membro.excluido_em.is_(None)
+                )
             )
             numero_rol = (maior or 0) + 1
         membro = Membro(igreja_id=igreja_id, numero_rol=numero_rol, **campos)
@@ -85,6 +94,16 @@ class MembroRepository:
         for chave, valor in campos.items():
             setattr(membro, chave, valor)
         self.db.flush()
+
+    def excluir(self, membro: Membro) -> int:
+        """Exclusão lógica. Desvincula a conta de usuário ligada ao membro e devolve
+        quantas contas foram desvinculadas (0 ou 1)."""
+        membro.excluido_em = func.now()
+        desvinculadas = self.db.execute(
+            update(Usuario).where(Usuario.membro_id == membro.id).values(membro_id=None)
+        ).rowcount
+        self.db.flush()
+        return desvinculadas
 
 
 class EventoRepository:

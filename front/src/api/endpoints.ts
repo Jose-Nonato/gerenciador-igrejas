@@ -1,5 +1,5 @@
 import { api, apiBlob } from './client'
-import type { FiltroMembros, Membro, MembroPage, TokenPair, Usuario } from './types'
+import type { AtualizacaoMembro, Familia, FiltroMembros, Membro, MembroPage, NovoMembro, TokenPair, Usuario } from './types'
 
 export const authApi = {
   login: (email: string, senha: string) =>
@@ -20,5 +20,15 @@ export const authApi = {
 export const membrosApi = {
   listar: (filtro: FiltroMembros) => api<MembroPage>('/membros', { query: { ...filtro } }),
   obter: (id: string) => api<Membro>(`/membros/${id}`),
+  criar: (dados: NovoMembro) => api<Membro>('/membros', { method: 'POST', json: dados }),
+  atualizar: (id: string, dados: AtualizacaoMembro) =>
+    api<Membro>(`/membros/${id}`, { method: 'PATCH', json: dados }),
+  /** Exclusão lógica: o backend mantém a linha e a auditoria */
+  excluir: (id: string) => api<void>(`/membros/${id}`, { method: 'DELETE' }),
   exportarCsv: (filtro: FiltroMembros) => apiBlob('/membros/exportar', { query: { ...filtro } }),
+}
+
+export const familiasApi = {
+  listar: () => api<Familia[]>('/familias'),
+  criar: (nome: string) => api<Familia>('/familias', { method: 'POST', json: { nome } }),
 }

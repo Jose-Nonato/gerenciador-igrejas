@@ -1,10 +1,11 @@
+import uuid
 from datetime import date, timedelta
 
 import pytest
 from sqlalchemy import select
 
 from core.database import SessionLocal
-from models import EventoEclesiastico, LogAuditoria
+from models import EventoEclesiastico, LogAuditoria, Membro
 from models.enums import PerfilUsuario
 
 ADMIN = PerfilUsuario.ADMIN
@@ -98,9 +99,96 @@ def test_patch_nao_altera_situacao_rol_nem_oficio(client, h, novo_membro):
     assert (corpo["situacao"], corpo["rol"], corpo["oficio"]) == ("ativo", "C", "nenhum")
 
 
-def test_nao_existe_rota_para_apagar_membro(client, h, novo_membro):
+# ---------- exclusão lógica ----------
+
+def test_excluir_remove_do_rol_mas_mantem_a_linha_e_audita(client, h, novo_membro):
+    m = novo_membro(nome="Cadastro Errado")
+    assert client.delete(f"/membros/{m['id']}", headers=h).status_code == 204
+
+    assert client.get(f"/membros/{m['id']}", headers=h).status_code == 404
+    assert client.patch(f"/membros/{m['id']}", headers=h, json={"nome": "X"}).status_code == 404
+    assert client.get(f"/membros/{m['id']}/eventos", headers=h).status_code == 404
+    assert client.get("/membros", headers=h).json()["total"] == 0
+    assert "Cadastro Errado" not in client.get("/membros/exportar", headers=h).text
+
+    with SessionLocal() as db:
+        linha = db.get(Membro, uuid.UUID(m["id"]))
+        assert linha is not None and linha.excluido_em is not None
+    log = auditoria("membro_excluido")
+    assert len(log) == 1 and log[0].detalhes["nome"] == "Cadastro Errado"
+
+
+def test_excluir_duas_vezes_da_404(client, h, novo_membro):
     m = novo_membro()
-    assert client.delete(f"/membros/{m['id']}", headers=h).status_code == 405
+    assert client.delete(f"/membros/{m['id']}", headers=h).status_code == 204
+    assert client.delete(f"/membros/{m['id']}", headers=h).status_code == 404
+
+
+def test_excluir_preserva_os_eventos_do_membro(client, h, novo_membro):
+    m = novo_membro()
+    assert evento(client, h, m["id"], tipo="profissao_fe").status_code == 201
+    assert client.delete(f"/membros/{m['id']}", headers=h).status_code == 204
+    with SessionLocal() as db:
+        assert db.scalar(select(EventoEclesiastico).where(EventoEclesiastico.membro_id == uuid.UUID(m["id"])))
+
+
+def test_numero_do_rol_de_cadastro_excluido_volta_a_ficar_livre(client, h, novo_membro):
+    a = novo_membro(numero_rol=7)
+    assert client.delete(f"/membros/{a['id']}", headers=h).status_code == 204
+    b = novo_membro(nome="Outra Pessoa", numero_rol=7)
+    assert b["numero_rol"] == 7
+
+
+def test_numero_automatico_ignora_cadastros_excluidos(client, h, novo_membro):
+    novo_membro(numero_rol=1)
+    ultimo = novo_membro(numero_rol=2)
+    assert client.delete(f"/membros/{ultimo['id']}", headers=h).status_code == 204
+    assert novo_membro()["numero_rol"] == 2
+
+
+def test_excluir_desvincula_a_conta_de_usuario(client, auth, h, admin, criar_usuario, igreja, novo_membro):
+    m = novo_membro()
+    outro = criar_usuario(igreja, "vinculado@a.org", perfil=PerfilUsuario.USUARIO)
+    r = client.patch(f"/usuarios/{outro.id}", headers=h, json={"membro_id": m["id"]})
+    assert r.status_code == 200, r.text
+
+    assert client.delete(f"/membros/{m['id']}", headers=h).status_code == 204
+    lista = client.get("/usuarios", headers=h).json()
+    assert next(u for u in lista if u["email"] == "vinculado@a.org")["membro_id"] is None
+    assert auditoria("membro_excluido")[0].detalhes["contas_desvinculadas"] == 1
+
+
+def test_nao_vincula_usuario_a_membro_excluido(client, h, admin, criar_usuario, igreja, novo_membro):
+    m = novo_membro()
+    client.delete(f"/membros/{m['id']}", headers=h)
+    outro = criar_usuario(igreja, "x@a.org", perfil=PerfilUsuario.USUARIO)
+    r = client.patch(f"/usuarios/{outro.id}", headers=h, json={"membro_id": m["id"]})
+    assert r.status_code == 404
+
+
+def test_presbitero_nao_exclui_membro(client, auth, criar_usuario, igreja, novo_membro):
+    presb = criar_usuario(igreja, "p@a.org", perfil=PerfilUsuario.PRESBITERO)
+    m = novo_membro()
+    assert client.delete(f"/membros/{m['id']}", headers=auth(presb)).status_code == 403
+    assert client.get(f"/membros/{m['id']}", headers=auth(presb)).status_code == 200
+
+
+def test_pastor_exclui_membro(client, auth, criar_usuario, igreja, novo_membro):
+    pastor = criar_usuario(igreja, "pastor@a.org", perfil=PerfilUsuario.PASTOR)
+    m = novo_membro()
+    assert client.delete(f"/membros/{m['id']}", headers=auth(pastor)).status_code == 204
+
+
+def test_outra_igreja_nao_exclui_membro(client, h, novo_membro, criar_igreja, criar_usuario, auth):
+    m = novo_membro()
+    intruso = criar_usuario(criar_igreja("Igreja B"), "admin@b.org", perfil=ADMIN)
+    assert client.delete(f"/membros/{m['id']}", headers=auth(intruso)).status_code == 404
+    assert client.get(f"/membros/{m['id']}", headers=h).status_code == 200
+
+
+def test_excluir_exige_autenticacao(client, novo_membro):
+    m = novo_membro()
+    assert client.delete(f"/membros/{m['id']}").status_code == 401
 
 
 # ---------- busca ----------

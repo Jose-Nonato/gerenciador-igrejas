@@ -13,7 +13,7 @@ from schemas import (
     MembroUpdate,
     RegistroEventoOut,
 )
-from views.dependencies import ActiveUser, MembroCtrl, StaffUser
+from views.dependencies import ActiveUser, GestorUser, MembroCtrl, StaffUser
 
 router = APIRouter(prefix="/membros", tags=["membros"])
 
@@ -54,6 +54,11 @@ def obter(membro_id: uuid.UUID, ator: StaffUser, controller: MembroCtrl):
 @router.patch("/{membro_id}", response_model=MembroOut)
 def atualizar(membro_id: uuid.UUID, data: MembroUpdate, ator: StaffUser, controller: MembroCtrl):
     return controller.atualizar(ator, membro_id, data)
+
+
+@router.delete("/{membro_id}", status_code=status.HTTP_204_NO_CONTENT)
+def excluir(membro_id: uuid.UUID, ator: GestorUser, controller: MembroCtrl):
+    controller.excluir(ator, membro_id)
 
 
 @router.get("/{membro_id}/eventos", response_model=list[EventoOut])

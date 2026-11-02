@@ -63,3 +63,27 @@ def test_migracoes_batem_com_os_modelos():
 
         diff = compare_metadata(MigrationContext.configure(conn, opts={"compare_type": True}), Base.metadata)
         assert diff == []
+
+
+def test_downgrade_da_exclusao_logica_libera_numero_repetido_de_excluido():
+    recreate_database(DB)
+    cfg = alembic_config()
+    with _engine().begin() as conn:
+        cfg.attributes["connection"] = conn
+        command.upgrade(cfg, "head")
+        igreja = uuid.uuid4()
+        conn.execute(text("INSERT INTO igreja (id, nome) VALUES (:i, 'A')"), {"i": igreja})
+        ativo, excluido = uuid.uuid4(), uuid.uuid4()
+        for id_, extra in ((ativo, "NULL"), (excluido, "now()")):
+            conn.execute(
+                text(
+                    "INSERT INTO membro (id, igreja_id, numero_rol, rol, nome, situacao, oficio, excluido_em) "
+                    f"VALUES (:id, :ig, 5, 'C', 'M', 'ativo', 'nenhum', {extra})"
+                ),
+                {"id": id_, "ig": igreja},
+            )
+
+        command.downgrade(cfg, "0003")
+
+        numeros = dict(conn.execute(text("SELECT id, numero_rol FROM membro")).all())
+        assert numeros[ativo] == 5 and numeros[excluido] is None

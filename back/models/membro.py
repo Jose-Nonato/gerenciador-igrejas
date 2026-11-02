@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import Date, DateTime, ForeignKey, Index, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.database import Base
@@ -10,11 +10,23 @@ from models.enums import EstadoCivil, Oficio, Rol, Sexo, SituacaoMembro, enum_co
 
 
 class Membro(UUIDPk, IgrejaScoped, Base):
-    """Rol de membros. Nunca é apagado: a situação muda por evento eclesiástico."""
+    """Rol de membros.
+
+    A situação (transferido, falecido, excluído…) muda por evento eclesiástico e o membro
+    continua no rol. `excluido_em` é outra coisa: remove um cadastro feito por engano
+    (exclusão lógica). A linha, os eventos e a auditoria permanecem no banco.
+    """
 
     __tablename__ = "membro"
     __table_args__ = (
-        UniqueConstraint("igreja_id", "numero_rol", name="uq_membro_igreja_numero_rol"),
+        # Parcial: o número de um cadastro excluído volta a ficar livre
+        Index(
+            "uq_membro_igreja_numero_rol",
+            "igreja_id",
+            "numero_rol",
+            unique=True,
+            postgresql_where=text("excluido_em IS NULL"),
+        ),
     )
 
     familia_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -33,6 +45,7 @@ class Membro(UUIDPk, IgrejaScoped, Base):
         enum_column(SituacaoMembro), default=SituacaoMembro.ATIVO
     )
     oficio: Mapped[Oficio] = mapped_column(enum_column(Oficio), default=Oficio.NENHUM)
+    excluido_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     atualizado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

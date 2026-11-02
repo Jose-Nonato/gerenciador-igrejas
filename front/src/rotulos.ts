@@ -1,4 +1,4 @@
-import type { Oficio, Perfil, Rol, SituacaoMembro } from './api/types'
+import type { EstadoCivil, Oficio, Perfil, Rol, Sexo, SituacaoMembro } from './api/types'
 
 export const PERFIL: Record<Perfil, string> = {
   admin: 'Administrador',
@@ -24,4 +24,16 @@ export const OFICIO: Record<Oficio, string> = {
   nenhum: '—',
   presbitero: 'Presbítero',
   diacono: 'Diácono',
+}
+
+export const SEXO: Record<Sexo, string> = {
+  masculino: 'Masculino',
+  feminino: 'Feminino',
+}
+
+export const ESTADO_CIVIL: Record<EstadoCivil, string> = {
+  solteiro: 'Solteiro(a)',
+  casado: 'Casado(a)',
+  viuvo: 'Viúvo(a)',
+  divorciado: 'Divorciado(a)',
 }
