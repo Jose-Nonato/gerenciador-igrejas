@@ -2,9 +2,12 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
+import { ComunicadoFormPage } from './pages/ComunicadoFormPage'
+import { ComunicadosPage } from './pages/ComunicadosPage'
 import { EditarMembroPage } from './pages/EditarMembroPage'
 import { FichaMembroPage } from './pages/FichaMembroPage'
 import { EsqueciSenhaPage } from './pages/EsqueciSenhaPage'
+import { GerenciarComunicadosPage } from './pages/GerenciarComunicadosPage'
 import { InicioPage } from './pages/InicioPage'
 import { LoginPage } from './pages/LoginPage'
 import { MembrosPage } from './pages/MembrosPage'
@@ -28,6 +31,12 @@ export default function App() {
           <Route element={<RequireAuth />}>
             <Route element={<Layout />}>
               <Route index element={<InicioPage />} />
+              {/* Mural: todo usuário lê o que foi publicado para o seu público. Quem escreve é
+                  decidido pelo backend (admin, pastor e liderança da própria sociedade). */}
+              <Route path="comunicados" element={<ComunicadosPage />} />
+              <Route path="comunicados/gerenciar" element={<GerenciarComunicadosPage />} />
+              <Route path="comunicados/novo" element={<ComunicadoFormPage />} />
+              <Route path="comunicados/:id/editar" element={<ComunicadoFormPage />} />
               <Route path="trocar-senha" element={<TrocarSenhaPage />} />
               <Route element={<RequireAuth perfis={['admin', 'pastor', 'presbitero']} />}>
                 <Route path="membros" element={<MembrosPage />} />

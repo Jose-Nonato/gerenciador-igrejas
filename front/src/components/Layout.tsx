@@ -25,6 +25,7 @@ export function Layout() {
           <NavLink to="/" end>
             Início
           </NavLink>
+          <NavLink to="/comunicados">Comunicados</NavLink>
           {equipe && <NavLink to="/membros">Rol de membros</NavLink>}
           {sociedades.temAcesso && <NavLink to="/sociedades">Sociedades</NavLink>}
           {equipe && <NavLink to="/usuarios">Usuários</NavLink>}

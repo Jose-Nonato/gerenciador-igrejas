@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from controllers import (
     AuthController,
+    ComunicadoController,
     FamiliaController,
     IgrejaController,
     MembroController,
@@ -20,6 +21,7 @@ from models import Usuario
 from models.enums import PerfilUsuario
 from repositories import (
     AuditoriaRepository,
+    ComunicadoRepository,
     EventoRepository,
     FamiliaRepository,
     IgrejaRepository,
@@ -90,6 +92,17 @@ def get_sociedade_controller(db: DbSession) -> SociedadeController:
     )
 
 
+def get_comunicado_controller(db: DbSession) -> ComunicadoController:
+    return ComunicadoController(
+        ComunicadoRepository(db),
+        SociedadeRepository(db),
+        LiderancaRepository(db),
+        MembroRepository(db),
+        AuditoriaRepository(db),
+        db,
+    )
+
+
 # Só documenta o esquema Bearer no OpenAPI (botão "Authorize" no /docs);
 # a validação do token continua sendo feita pelo JWTAuthMiddleware.
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -141,3 +154,4 @@ IgrejaCtrl = Annotated[IgrejaController, Depends(get_igreja_controller)]
 FamiliaCtrl = Annotated[FamiliaController, Depends(get_familia_controller)]
 MembroCtrl = Annotated[MembroController, Depends(get_membro_controller)]
 SociedadeCtrl = Annotated[SociedadeController, Depends(get_sociedade_controller)]
+ComunicadoCtrl = Annotated[ComunicadoController, Depends(get_comunicado_controller)]

@@ -2,9 +2,13 @@ import { api, apiBlob } from './client'
 import type {
   AtualizacaoMembro,
   AtualizacaoSocio,
+  AtualizacaoComunicado,
   AtualizacaoUsuario,
+  Comunicado,
+  ComunicadoPage,
   Evento,
   Familia,
+  FiltroComunicados,
   FiltroMembros,
   Frequencia,
   ItemPresenca,
@@ -14,6 +18,7 @@ import type {
   MembroResumo,
   NovaReuniao,
   NovaLideranca,
+  NovoComunicado,
   NovoEvento,
   NovoMembro,
   NovoSocio,
@@ -118,4 +123,22 @@ export const sociedadesApi = {
 
   frequencia: (id: string, de?: string, ate?: string) =>
     api<Frequencia>(`/sociedades/${id}/frequencia`, { query: { de, ate } }),
+}
+
+export const comunicadosApi = {
+  /** O que foi publicado para o público do usuário */
+  mural: (filtro: FiltroComunicados) => api<ComunicadoPage>('/comunicados', { query: { ...filtro } }),
+  /** Para quem escreve: inclui rascunhos e agendados */
+  gerenciar: (filtro: FiltroComunicados) =>
+    api<ComunicadoPage>('/comunicados/gerenciar', { query: { ...filtro } }),
+  obter: (id: string) => api<Comunicado>(`/comunicados/${id}`),
+  criar: (dados: NovoComunicado) => api<Comunicado>('/comunicados', { method: 'POST', json: dados }),
+  atualizar: (id: string, dados: AtualizacaoComunicado) =>
+    api<Comunicado>(`/comunicados/${id}`, { method: 'PATCH', json: dados }),
+  /** Sem `quando` (ou no passado): publica agora. No futuro: agenda. */
+  publicar: (id: string, quando?: string) =>
+    api<Comunicado>(`/comunicados/${id}/publicar`, { method: 'POST', json: { quando: quando ?? null } }),
+  despublicar: (id: string) => api<Comunicado>(`/comunicados/${id}/despublicar`, { method: 'POST' }),
+  /** Exclusão lógica */
+  excluir: (id: string) => api<void>(`/comunicados/${id}`, { method: 'DELETE' }),
 }

@@ -1,4 +1,5 @@
 from controllers.auth_controller import AuthController
+from controllers.comunicado_controller import ComunicadoController
 from controllers.familia_controller import FamiliaController
 from controllers.igreja_controller import IgrejaController
 from controllers.membro_controller import MembroController
@@ -7,6 +8,7 @@ from controllers.sociedade_controller import SociedadeController
 from controllers.usuario_controller import UsuarioController
 
 __all__ = [
+    "ComunicadoController",
     "AuthController",
     "FamiliaController",
     "IgrejaController",

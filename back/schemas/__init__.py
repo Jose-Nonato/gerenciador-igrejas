@@ -1,3 +1,10 @@
+from schemas.comunicado import (
+    ComunicadoCreate,
+    ComunicadoOut,
+    ComunicadoPage,
+    ComunicadoUpdate,
+    PublicarRequest,
+)
 from schemas.igreja import IgrejaOut, IgrejaUpdate
 from schemas.rol import (
     EventoCreate,
@@ -45,6 +52,11 @@ from schemas.usuario import (
 )
 
 __all__ = [
+    "ComunicadoCreate",
+    "ComunicadoOut",
+    "ComunicadoPage",
+    "ComunicadoUpdate",
+    "PublicarRequest",
     "LiderancaCreate",
     "LiderancaOut",
     "LiderancaUpdate",

@@ -1,3 +1,4 @@
+from models.comunicado import Comunicado
 from models.evento_eclesiastico import EventoEclesiastico
 from models.familia import Familia
 from models.igreja import Igreja
@@ -9,6 +10,7 @@ from models.token_redefinicao import TokenRedefinicao
 from models.usuario import Usuario
 
 __all__ = [
+    "Comunicado",
     "EventoEclesiastico",
     "Familia",
     "Igreja",

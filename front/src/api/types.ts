@@ -248,3 +248,50 @@ export interface MembroResumo {
   nome: string
   numero_rol: number | null
 }
+
+// ---------- comunicados ----------
+
+export type CategoriaPost = 'aviso' | 'evento' | 'pastoral' | 'oracao'
+export type StatusPost = 'rascunho' | 'agendado' | 'publicado'
+export type TipoPublico = 'igreja' | 'comungantes' | 'oficiais' | 'sociedade' | 'professores_ebd'
+
+export interface Comunicado {
+  id: string
+  titulo: string
+  corpo: string
+  categoria: CategoriaPost
+  publico: TipoPublico
+  sociedade_id: string | null
+  sociedade_sigla: string | null
+  /** Efetivo: um agendado cuja hora já chegou vem como publicado */
+  status: StatusPost
+  publicar_em: string | null
+  data_publicacao: string | null
+  autor: string | null
+  criado_em: string
+  atualizado_em: string
+}
+
+export interface ComunicadoPage {
+  items: Comunicado[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export interface NovoComunicado {
+  titulo: string
+  corpo: string
+  categoria: CategoriaPost
+  publico: TipoPublico
+  sociedade_id?: string | null
+}
+
+export type AtualizacaoComunicado = Partial<NovoComunicado>
+
+export interface FiltroComunicados {
+  categoria?: CategoriaPost
+  status?: StatusPost
+  limit?: number
+  offset?: number
+}

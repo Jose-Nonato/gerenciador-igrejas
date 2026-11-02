@@ -1,5 +1,6 @@
 import type {
   CargoLideranca,
+  CategoriaPost,
   EstadoCivil,
   FormaRecepcao,
   Oficio,
@@ -8,9 +9,11 @@ import type {
   Sexo,
   SiglaSociedade,
   SituacaoMembro,
+  StatusPost,
   StatusPresenca,
   StatusUsuario,
   TipoEvento,
+  TipoPublico,
   TipoSocio,
 } from './api/types'
 
@@ -105,4 +108,29 @@ export const CARGO: Record<CargoLideranca, string> = {
   tesoureiro: 'Tesoureiro(a)',
   conselheiro: 'Conselheiro(a)',
   outro: 'Outro cargo',
+}
+
+export const CATEGORIA: Record<CategoriaPost, string> = {
+  aviso: 'Aviso',
+  evento: 'Evento',
+  pastoral: 'Mensagem pastoral',
+  oracao: 'Pedido de oração',
+}
+
+export const STATUS_POST: Record<StatusPost, string> = {
+  rascunho: 'Rascunho',
+  agendado: 'Agendado',
+  publicado: 'Publicado',
+}
+
+export const PUBLICO: Record<TipoPublico, string> = {
+  igreja: 'Toda a igreja',
+  comungantes: 'Comungantes',
+  oficiais: 'Oficiais (presbíteros e diáconos)',
+  sociedade: 'Uma sociedade',
+  professores_ebd: 'Professores da EBD',
+}
+
+export function rotuloPublico(c: { publico: TipoPublico; sociedade_sigla: string | null }): string {
+  return c.publico === 'sociedade' ? `Sociedade ${c.sociedade_sigla ?? ''}`.trim() : PUBLICO[c.publico]
 }

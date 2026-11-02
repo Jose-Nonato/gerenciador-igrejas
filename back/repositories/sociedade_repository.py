@@ -107,6 +107,18 @@ class SociedadeRepository:
             )
         )
 
+    def sociedades_do_socio(self, igreja_id: uuid.UUID, membro_id: uuid.UUID) -> set[uuid.UUID]:
+        """Sociedades em que o membro é sócio (ativo ou cooperador) e ainda não saiu."""
+        return set(
+            self.db.scalars(
+                select(Socio.sociedade_id).where(
+                    Socio.igreja_id == igreja_id,
+                    Socio.membro_id == membro_id,
+                    Socio.saiu_em.is_(None),
+                )
+            )
+        )
+
     def create_socio(self, igreja_id: uuid.UUID, sociedade_id: uuid.UUID, campos: dict) -> Socio:
         socio = Socio(igreja_id=igreja_id, sociedade_id=sociedade_id, **campos)
         self.db.add(socio)

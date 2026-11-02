@@ -1,4 +1,5 @@
 from repositories.auditoria_repository import AuditoriaRepository
+from repositories.comunicado_repository import AudienciaLeitor, ComunicadoRepository, esta_publicado
 from repositories.familia_repository import FamiliaRepository
 from repositories.igreja_repository import IgrejaRepository
 from repositories.membro_repository import EventoRepository, MembroRepository
@@ -8,6 +9,9 @@ from repositories.token_redefinicao_repository import TokenRedefinicaoRepository
 from repositories.usuario_repository import UsuarioRepository
 
 __all__ = [
+    "AudienciaLeitor",
+    "ComunicadoRepository",
+    "esta_publicado",
     "AuditoriaRepository",
     "EventoRepository",
     "FamiliaRepository",

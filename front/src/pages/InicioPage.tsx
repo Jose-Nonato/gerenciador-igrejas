@@ -8,7 +8,6 @@ export function InicioPage() {
   const sociedades = useAcessoSociedades()
   if (!usuario) return null
   const equipe = usuario.perfil !== 'usuario'
-  const nada = !equipe && !sociedades.temAcesso
 
   return (
     <section className="pagina">
@@ -17,6 +16,10 @@ export function InicioPage() {
         Você está conectado como <strong>{usuario.email}</strong> ({PERFIL[usuario.perfil]}).
       </p>
       <div className="atalhos">
+        <Link to="/comunicados" className="atalho">
+          <strong>Comunicados</strong>
+          <span>Avisos, eventos e mensagens da igreja.</span>
+        </Link>
         {equipe && (
           <Link to="/membros" className="atalho">
             <strong>Rol de membros</strong>
@@ -30,7 +33,6 @@ export function InicioPage() {
           </Link>
         )}
       </div>
-      {nada && sociedades.temAcesso === false && <p>Novas funcionalidades para membros estarão disponíveis em breve.</p>}
     </section>
   )
 }
