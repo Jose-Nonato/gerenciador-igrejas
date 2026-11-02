@@ -214,9 +214,14 @@ export function MembroForm({ membro, rotuloSalvar, onSalvar }: Props) {
       <fieldset>
         <legend>Situação atual</legend>
         <p className="ajuda">
-          {editando
-            ? 'Situação e ofício mudam por eventos eclesiásticos (disciplina, ordenação, saída…), não por esta tela.'
-            : 'Normalmente ativo e sem ofício. Altere só ao cadastrar quem já tem outra situação; depois disso, mudanças passam por eventos eclesiásticos.'}
+          {editando ? (
+            <>
+              Rol, situação e ofício mudam por eventos eclesiásticos (profissão de fé, disciplina, ordenação, saída…).{' '}
+              <Link to={`/membros/${membro.id}`}>Abrir a ficha para registrar um evento</Link>.
+            </>
+          ) : (
+            'Normalmente ativo e sem ofício. Altere só ao cadastrar quem já tem outra situação; depois disso, mudanças passam por eventos eclesiásticos.'
+          )}
         </p>
         <div className="grade">
           <CampoSelect

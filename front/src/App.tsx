@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthProvider'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
 import { EditarMembroPage } from './pages/EditarMembroPage'
+import { FichaMembroPage } from './pages/FichaMembroPage'
 import { EsqueciSenhaPage } from './pages/EsqueciSenhaPage'
 import { InicioPage } from './pages/InicioPage'
 import { LoginPage } from './pages/LoginPage'
@@ -10,6 +11,7 @@ import { MembrosPage } from './pages/MembrosPage'
 import { NovoMembroPage } from './pages/NovoMembroPage'
 import { RedefinirSenhaPage } from './pages/RedefinirSenhaPage'
 import { TrocarSenhaPage } from './pages/TrocarSenhaPage'
+import { UsuariosPage } from './pages/UsuariosPage'
 
 export default function App() {
   return (
@@ -27,7 +29,9 @@ export default function App() {
               <Route element={<RequireAuth perfis={['admin', 'pastor', 'presbitero']} />}>
                 <Route path="membros" element={<MembrosPage />} />
                 <Route path="membros/novo" element={<NovoMembroPage />} />
+                <Route path="membros/:id" element={<FichaMembroPage />} />
                 <Route path="membros/:id/editar" element={<EditarMembroPage />} />
+                <Route path="usuarios" element={<UsuariosPage />} />
               </Route>
             </Route>
           </Route>

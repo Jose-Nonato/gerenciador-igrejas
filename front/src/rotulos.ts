@@ -1,4 +1,14 @@
-import type { EstadoCivil, Oficio, Perfil, Rol, Sexo, SituacaoMembro } from './api/types'
+import type {
+  EstadoCivil,
+  FormaRecepcao,
+  Oficio,
+  Perfil,
+  Rol,
+  Sexo,
+  SituacaoMembro,
+  StatusUsuario,
+  TipoEvento,
+} from './api/types'
 
 export const PERFIL: Record<Perfil, string> = {
   admin: 'Administrador',
@@ -36,4 +46,28 @@ export const ESTADO_CIVIL: Record<EstadoCivil, string> = {
   casado: 'Casado(a)',
   viuvo: 'Viúvo(a)',
   divorciado: 'Divorciado(a)',
+}
+
+export const TIPO_EVENTO: Record<TipoEvento, string> = {
+  batismo: 'Batismo',
+  profissao_fe: 'Profissão de fé',
+  recepcao: 'Recepção',
+  ordenacao: 'Ordenação',
+  disciplina: 'Disciplina',
+  restauracao: 'Restauração',
+  saida: 'Saída',
+}
+
+export const FORMA_RECEPCAO: Record<FormaRecepcao, string> = {
+  transferencia: 'Transferência',
+  jurisdicao: 'Jurisdição',
+  profissao_fe: 'Profissão de fé',
+  batismo_profissao_fe: 'Batismo e profissão de fé',
+}
+
+export const STATUS_USUARIO: Record<StatusUsuario, string> = {
+  ativo: 'Ativo',
+  bloqueado: 'Bloqueado',
+  convite_pendente: 'Convite pendente',
+  desativado: 'Desativado',
 }

@@ -1,5 +1,19 @@
 import { api, apiBlob } from './client'
-import type { AtualizacaoMembro, Familia, FiltroMembros, Membro, MembroPage, NovoMembro, TokenPair, Usuario } from './types'
+import type {
+  AtualizacaoMembro,
+  AtualizacaoUsuario,
+  Evento,
+  Familia,
+  FiltroMembros,
+  Membro,
+  MembroPage,
+  NovoEvento,
+  NovoMembro,
+  Perfil,
+  RegistroEvento,
+  TokenPair,
+  Usuario,
+} from './types'
 
 export const authApi = {
   login: (email: string, senha: string) =>
@@ -17,6 +31,15 @@ export const authApi = {
   eu: () => api<Usuario>('/usuarios/me'),
 }
 
+export const usuariosApi = {
+  listar: () => api<Usuario[]>('/usuarios'),
+  convidar: (email: string, perfil: Perfil) =>
+    api<Usuario>('/usuarios', { method: 'POST', json: { email, perfil } }),
+  atualizar: (id: string, dados: AtualizacaoUsuario) =>
+    api<Usuario>(`/usuarios/${id}`, { method: 'PATCH', json: dados }),
+  reenviarConvite: (id: string) => api<void>(`/usuarios/${id}/convite`, { method: 'POST' }),
+}
+
 export const membrosApi = {
   listar: (filtro: FiltroMembros) => api<MembroPage>('/membros', { query: { ...filtro } }),
   obter: (id: string) => api<Membro>(`/membros/${id}`),
@@ -25,6 +48,9 @@ export const membrosApi = {
     api<Membro>(`/membros/${id}`, { method: 'PATCH', json: dados }),
   /** Exclusão lógica: o backend mantém a linha e a auditoria */
   excluir: (id: string) => api<void>(`/membros/${id}`, { method: 'DELETE' }),
+  eventos: (id: string) => api<Evento[]>(`/membros/${id}/eventos`),
+  registrarEvento: (id: string, dados: NovoEvento) =>
+    api<RegistroEvento>(`/membros/${id}/eventos`, { method: 'POST', json: dados }),
   exportarCsv: (filtro: FiltroMembros) => apiBlob('/membros/exportar', { query: { ...filtro } }),
 }
 

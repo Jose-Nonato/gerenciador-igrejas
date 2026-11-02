@@ -24,6 +24,7 @@ export function Layout() {
             Início
           </NavLink>
           {equipe && <NavLink to="/membros">Rol de membros</NavLink>}
+          {equipe && <NavLink to="/usuarios">Usuários</NavLink>}
           <NavLink to="/trocar-senha">Alterar senha</NavLink>
         </nav>
         <div className="usuario">

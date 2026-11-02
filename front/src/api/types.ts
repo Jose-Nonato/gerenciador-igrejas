@@ -84,3 +84,51 @@ export interface NovoMembro {
 
 /** Corpo de PATCH /membros/{id}: rol, situação e ofício só mudam por eventos eclesiásticos. */
 export type AtualizacaoMembro = Omit<NovoMembro, 'rol' | 'situacao' | 'oficio'>
+
+export type TipoEvento =
+  | 'batismo'
+  | 'profissao_fe'
+  | 'recepcao'
+  | 'ordenacao'
+  | 'disciplina'
+  | 'restauracao'
+  | 'saida'
+export type FormaRecepcao = 'transferencia' | 'jurisdicao' | 'profissao_fe' | 'batismo_profissao_fe'
+
+export interface Evento {
+  id: string
+  membro_id: string
+  tipo: TipoEvento
+  forma_recepcao: FormaRecepcao | null
+  data: string
+  ata_conselho: string | null
+  igreja_relacionada: string | null
+  observacao: string | null
+  oficio: Oficio | null
+  situacao_resultante: SituacaoMembro | null
+}
+
+/** Corpo de POST /membros/{id}/eventos; campos que não se aplicam ao tipo ficam de fora. */
+export interface NovoEvento {
+  tipo: TipoEvento
+  data: string
+  ata_conselho?: string | null
+  forma_recepcao?: FormaRecepcao | null
+  igreja_relacionada?: string | null
+  observacao?: string | null
+  oficio?: Oficio | null
+  situacao_resultante?: SituacaoMembro | null
+}
+
+export interface RegistroEvento {
+  evento: Evento
+  membro: Membro
+}
+
+/** Corpo de PATCH /usuarios/{id}; `membro_id: null` desvincula, omitir não mexe. */
+export interface AtualizacaoUsuario {
+  email?: string
+  perfil?: Perfil
+  status?: StatusUsuario
+  membro_id?: string | null
+}

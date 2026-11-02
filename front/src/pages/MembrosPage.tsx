@@ -5,16 +5,11 @@ import { membrosApi } from '../api/endpoints'
 import type { FiltroMembros, Membro, MembroPage, Rol, SituacaoMembro } from '../api/types'
 import { useAuth } from '../auth/useAuth'
 import { DialogoConfirmar } from '../components/DialogoConfirmar'
+import { formatarData } from '../formatar'
 import { podeExcluirMembro } from '../permissoes'
 import { OFICIO, ROL, SITUACAO } from '../rotulos'
 
 const POR_PAGINA = 20
-
-function formatarData(iso: string | null): string {
-  if (!iso) return '—'
-  const [a, m, d] = iso.split('-')
-  return `${d}/${m}/${a}`
-}
 
 export function MembrosPage() {
   const avisoRota = (useLocation().state as { aviso?: string } | null)?.aviso
@@ -186,7 +181,7 @@ export function MembrosPage() {
             {dados?.items.map((m) => (
               <tr key={m.id}>
                 <td>{m.numero_rol ?? '—'}</td>
-                <td>{m.nome}</td>
+                <td><Link to={`/membros/${m.id}`} className="link-nome">{m.nome}</Link></td>
                 <td>{ROL[m.rol]}</td>
                 <td><span className={`selo ${m.situacao}`}>{SITUACAO[m.situacao]}</span></td>
                 <td>{OFICIO[m.oficio]}</td>
