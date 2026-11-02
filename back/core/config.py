@@ -5,6 +5,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     DATABASE_URL: str
+    # Aplica `alembic upgrade head` ao iniciar a API. Desligue se as migrações rodam
+    # em outra etapa (ex.: um passo de deploy) ou se o usuário do banco não pode alterar o schema.
+    AUTO_MIGRATE: bool = True
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15

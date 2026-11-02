@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -6,10 +8,19 @@ import models  # noqa: F401  (registra os modelos no metadata)
 from core.config import settings
 from core.exceptions import AppError
 from core.middleware import JWTAuthMiddleware
-from views import auth_view, familia_view, igreja_view, membro_view, usuario_view
+from core.migracoes import aplicar_migracoes
+from views import auth_view, familia_view, igreja_view, membro_view, sociedade_view, usuario_view
 
-# O schema do banco é gerenciado pelo Alembic: `alembic upgrade head`
-app = FastAPI(title="Gerenciador de Igrejas")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # O schema do banco é gerenciado pelo Alembic. Se a migração falhar, a API não sobe.
+    if settings.AUTO_MIGRATE:
+        aplicar_migracoes()
+    yield
+
+
+app = FastAPI(title="Gerenciador de Igrejas", lifespan=lifespan)
 app.add_middleware(JWTAuthMiddleware)
 # Adicionado por último = camada mais externa: assim até os 401 do JWT levam os cabeçalhos CORS
 app.add_middleware(
@@ -37,3 +48,4 @@ app.include_router(usuario_view.router)
 app.include_router(igreja_view.router)
 app.include_router(familia_view.router)
 app.include_router(membro_view.router)
+app.include_router(sociedade_view.router)

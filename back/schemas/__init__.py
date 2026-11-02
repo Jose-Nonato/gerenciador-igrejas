@@ -12,6 +12,23 @@ from schemas.rol import (
     MembroUpdate,
     RegistroEventoOut,
 )
+from schemas.sociedade import (
+    FrequenciaOut,
+    FrequenciaSocioOut,
+    PresencaItem,
+    PresencaOut,
+    PresencasLote,
+    ReuniaoCreate,
+    ReuniaoDetalheOut,
+    ReuniaoOut,
+    ReuniaoUpdate,
+    SocioCreate,
+    SocioOut,
+    SociedadeCreate,
+    SociedadeOut,
+    SociedadeUpdate,
+    SocioUpdate,
+)
 from schemas.token import RefreshRequest, TokenPair
 from schemas.usuario import (
     EsqueciSenha,
@@ -24,6 +41,21 @@ from schemas.usuario import (
 )
 
 __all__ = [
+    "FrequenciaOut",
+    "FrequenciaSocioOut",
+    "PresencaItem",
+    "PresencaOut",
+    "PresencasLote",
+    "ReuniaoCreate",
+    "ReuniaoDetalheOut",
+    "ReuniaoOut",
+    "ReuniaoUpdate",
+    "SocioCreate",
+    "SocioOut",
+    "SociedadeCreate",
+    "SociedadeOut",
+    "SociedadeUpdate",
+    "SocioUpdate",
     "EsqueciSenha",
     "EventoCreate",
     "EventoOut",

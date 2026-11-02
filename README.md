@@ -24,6 +24,7 @@ pip install -r requirements-dev.txt
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `DATABASE_URL` | sim | ex.: `postgresql+pg8000://usuario:senha@localhost:5432/gerenciador` |
+| `AUTO_MIGRATE` | não | padrão `true`: aplica as migrações ao iniciar a API |
 | `JWT_SECRET` | sim | segredo longo e aleatório |
 | `JWT_ALGORITHM` | não | padrão `HS256` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | não | padrão 15 |
@@ -35,11 +36,13 @@ pip install -r requirements-dev.txt
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | não | sem `SMTP_HOST` os e-mails só são registrados no log |
 
 ### Banco de dados
-O schema é gerenciado pelo Alembic:
-```bash
-cd back
-alembic upgrade head
-```
+O schema é gerenciado pelo Alembic. **Ao iniciar, a API aplica as migrações pendentes sozinha**
+(`alembic upgrade head`), então basta subir o backend. Se a migração falhar, a API não sobe.
+
+- Vários processos subindo juntos são seguros: um lock do Postgres faz um migrar por vez.
+- Para desligar (ex.: migrar num passo de deploy à parte), defina `AUTO_MIGRATE=false` no `.env`.
+- Rodar à mão continua funcionando: `cd back && alembic upgrade head`.
+- Só migra para frente. Reverter (`alembic downgrade`) é sempre manual.
 
 ### Primeira igreja e administrador
 ```bash

@@ -20,6 +20,8 @@ TEST_DB_NAME = f"{_dev_url.database}_test"
 TEST_URL = _dev_url.set(database=TEST_DB_NAME)
 os.environ["DATABASE_URL"] = TEST_URL.render_as_string(hide_password=False)
 os.environ.setdefault("JWT_SECRET", _env["JWT_SECRET"])
+# Os testes montam o banco sozinhos (fixture _banco); a migração na inicialização só atrapalharia
+os.environ["AUTO_MIGRATE"] = "false"
 
 
 def recreate_database(name: str) -> None:

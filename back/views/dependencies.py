@@ -10,6 +10,7 @@ from controllers import (
     IgrejaController,
     MembroController,
     RedefinicaoSenhaController,
+    SociedadeController,
     UsuarioController,
 )
 from core.database import get_db
@@ -24,6 +25,7 @@ from repositories import (
     IgrejaRepository,
     MembroRepository,
     RefreshTokenRepository,
+    SociedadeRepository,
     TokenRedefinicaoRepository,
     UsuarioRepository,
 )
@@ -77,6 +79,12 @@ def get_membro_controller(db: DbSession) -> MembroController:
     )
 
 
+def get_sociedade_controller(db: DbSession) -> SociedadeController:
+    return SociedadeController(
+        SociedadeRepository(db), MembroRepository(db), AuditoriaRepository(db), db
+    )
+
+
 # Só documenta o esquema Bearer no OpenAPI (botão "Authorize" no /docs);
 # a validação do token continua sendo feita pelo JWTAuthMiddleware.
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -127,3 +135,4 @@ UsuarioCtrl = Annotated[UsuarioController, Depends(get_usuario_controller)]
 IgrejaCtrl = Annotated[IgrejaController, Depends(get_igreja_controller)]
 FamiliaCtrl = Annotated[FamiliaController, Depends(get_familia_controller)]
 MembroCtrl = Annotated[MembroController, Depends(get_membro_controller)]
+SociedadeCtrl = Annotated[SociedadeController, Depends(get_sociedade_controller)]
