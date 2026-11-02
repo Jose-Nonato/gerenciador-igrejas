@@ -10,6 +10,9 @@ import { LoginPage } from './pages/LoginPage'
 import { MembrosPage } from './pages/MembrosPage'
 import { NovoMembroPage } from './pages/NovoMembroPage'
 import { RedefinirSenhaPage } from './pages/RedefinirSenhaPage'
+import { ReuniaoPage } from './pages/ReuniaoPage'
+import { SociedadePage } from './pages/SociedadePage'
+import { SociedadesPage } from './pages/SociedadesPage'
 import { TrocarSenhaPage } from './pages/TrocarSenhaPage'
 import { UsuariosPage } from './pages/UsuariosPage'
 
@@ -32,6 +35,13 @@ export default function App() {
                 <Route path="membros/:id" element={<FichaMembroPage />} />
                 <Route path="membros/:id/editar" element={<EditarMembroPage />} />
                 <Route path="usuarios" element={<UsuariosPage />} />
+              </Route>
+              {/* Sociedades internas: só admin e pastor (o backend também exige) */}
+              <Route element={<RequireAuth perfis={['admin', 'pastor']} />}>
+                <Route path="sociedades" element={<SociedadesPage />} />
+                <Route path="sociedades/:id" element={<SociedadePage />} />
+                <Route path="sociedades/:id/reunioes/nova" element={<ReuniaoPage />} />
+                <Route path="sociedades/:id/reunioes/:reuniaoId" element={<ReuniaoPage />} />
               </Route>
             </Route>
           </Route>

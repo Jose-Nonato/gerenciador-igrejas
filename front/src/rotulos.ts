@@ -5,9 +5,12 @@ import type {
   Perfil,
   Rol,
   Sexo,
+  SiglaSociedade,
   SituacaoMembro,
+  StatusPresenca,
   StatusUsuario,
   TipoEvento,
+  TipoSocio,
 } from './api/types'
 
 export const PERFIL: Record<Perfil, string> = {
@@ -70,4 +73,26 @@ export const STATUS_USUARIO: Record<StatusUsuario, string> = {
   bloqueado: 'Bloqueado',
   convite_pendente: 'Convite pendente',
   desativado: 'Desativado',
+}
+
+export const SIGLA: Record<SiglaSociedade, string> = {
+  UCP: 'União de Crianças Presbiterianas',
+  UPA: 'União Presbiteriana de Adolescentes',
+  UMP: 'União de Mocidade Presbiteriana',
+  SAF: 'Sociedade Auxiliadora Feminina',
+  UPH: 'União Presbiteriana de Homens',
+}
+
+export const SIGLAS = Object.keys(SIGLA) as SiglaSociedade[]
+
+export const TIPO_SOCIO: Record<TipoSocio, string> = {
+  ativo: 'Sócio ativo',
+  cooperador: 'Cooperador',
+  nao_membro: 'Não membro',
+}
+
+export const STATUS_PRESENCA: Record<StatusPresenca, string> = {
+  P: 'Presente',
+  A: 'Ausente',
+  J: 'Justificado',
 }

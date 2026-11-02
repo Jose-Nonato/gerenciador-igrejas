@@ -4,3 +4,8 @@ import type { Usuario } from './api/types'
 export function podeExcluirMembro(usuario: Usuario | null): boolean {
   return usuario?.perfil === 'admin' || usuario?.perfil === 'pastor'
 }
+
+/** Espelha o backend: as sociedades internas são só de admin e pastor (GestorUser). */
+export function gerenciaSociedades(usuario: Usuario | null): boolean {
+  return usuario?.perfil === 'admin' || usuario?.perfil === 'pastor'
+}

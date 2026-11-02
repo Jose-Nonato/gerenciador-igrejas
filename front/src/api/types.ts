@@ -132,3 +132,85 @@ export interface AtualizacaoUsuario {
   status?: StatusUsuario
   membro_id?: string | null
 }
+
+// ---------- sociedades ----------
+
+export type SiglaSociedade = 'UCP' | 'UPA' | 'UMP' | 'SAF' | 'UPH'
+export type TipoSocio = 'ativo' | 'cooperador' | 'nao_membro'
+export type StatusPresenca = 'P' | 'A' | 'J'
+
+export interface Sociedade {
+  id: string
+  sigla: SiglaSociedade
+  nome: string | null
+  total_socios: number
+}
+
+export interface Socio {
+  id: string
+  sociedade_id: string
+  membro_id: string | null
+  nome: string
+  tipo: TipoSocio
+  entrou_em: string
+  saiu_em: string | null
+}
+
+/** Corpo de POST /sociedades/{id}/socios: membro_id para ativo/cooperador, nome_externo para nao_membro. */
+export interface NovoSocio {
+  tipo: TipoSocio
+  membro_id?: string | null
+  nome_externo?: string | null
+}
+
+export interface AtualizacaoSocio {
+  tipo?: TipoSocio
+  nome_externo?: string
+}
+
+export interface Reuniao {
+  id: string
+  sociedade_id: string
+  data: string
+  tema: string | null
+  presentes: number
+  ausentes: number
+  justificados: number
+}
+
+export interface ItemPresenca {
+  socio_id: string
+  status: StatusPresenca
+}
+
+export interface PresencaDetalhe extends ItemPresenca {
+  nome: string
+}
+
+export interface ReuniaoDetalhe extends Reuniao {
+  presencas: PresencaDetalhe[]
+}
+
+export interface NovaReuniao {
+  data: string
+  tema?: string | null
+  presencas?: ItemPresenca[]
+}
+
+export interface FrequenciaSocio {
+  socio_id: string
+  nome: string
+  tipo: TipoSocio
+  presentes: number
+  ausentes: number
+  justificados: number
+  sem_registro: number
+  percentual_presenca: number | null
+}
+
+export interface Frequencia {
+  de: string | null
+  ate: string | null
+  total_reunioes: number
+  socios: FrequenciaSocio[]
+}

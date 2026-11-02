@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { gerenciaSociedades } from '../permissoes'
 import { PERFIL } from '../rotulos'
 
 export function InicioPage() {
@@ -19,6 +20,12 @@ export function InicioPage() {
             <strong>Rol de membros</strong>
             <span>Consulte e exporte os membros da igreja.</span>
           </Link>
+          {gerenciaSociedades(usuario) && (
+            <Link to="/sociedades" className="atalho">
+              <strong>Sociedades internas</strong>
+              <span>Sócios, reuniões, presença e frequência.</span>
+            </Link>
+          )}
         </div>
       ) : (
         <p>Novas funcionalidades para membros estarão disponíveis em breve.</p>

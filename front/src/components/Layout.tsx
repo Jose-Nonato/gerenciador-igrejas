@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { gerenciaSociedades } from '../permissoes'
 import { PERFIL } from '../rotulos'
 
 export function Layout() {
@@ -24,6 +25,7 @@ export function Layout() {
             Início
           </NavLink>
           {equipe && <NavLink to="/membros">Rol de membros</NavLink>}
+          {gerenciaSociedades(usuario) && <NavLink to="/sociedades">Sociedades</NavLink>}
           {equipe && <NavLink to="/usuarios">Usuários</NavLink>}
           <NavLink to="/trocar-senha">Alterar senha</NavLink>
         </nav>

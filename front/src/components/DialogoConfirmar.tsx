@@ -5,6 +5,7 @@ interface Props {
   titulo: string
   children: ReactNode
   rotuloConfirmar: string
+  rotuloOcupado?: string
   ocupado?: boolean
   erro?: string | null
   onConfirmar: () => void
@@ -17,6 +18,7 @@ export function DialogoConfirmar({
   titulo,
   children,
   rotuloConfirmar,
+  rotuloOcupado = 'Excluindo…',
   ocupado = false,
   erro,
   onConfirmar,
@@ -46,7 +48,7 @@ export function DialogoConfirmar({
       {erro && <p className="aviso erro" role="alert">{erro}</p>}
       <div className="acoes-form">
         <button type="button" className="botao perigo" onClick={onConfirmar} disabled={ocupado}>
-          {ocupado ? 'Excluindo…' : rotuloConfirmar}
+          {ocupado ? rotuloOcupado : rotuloConfirmar}
         </button>
         <button type="button" className="botao secundario" onClick={onCancelar} disabled={ocupado}>
           Cancelar
