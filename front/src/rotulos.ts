@@ -1,4 +1,5 @@
 import type {
+  CargoLideranca,
   EstadoCivil,
   FormaRecepcao,
   Oficio,
@@ -95,4 +96,13 @@ export const STATUS_PRESENCA: Record<StatusPresenca, string> = {
   P: 'Presente',
   A: 'Ausente',
   J: 'Justificado',
+}
+
+export const CARGO: Record<CargoLideranca, string> = {
+  presidente: 'Presidente',
+  vice_presidente: 'Vice-presidente',
+  secretario: 'Secretário(a)',
+  tesoureiro: 'Tesoureiro(a)',
+  conselheiro: 'Conselheiro(a)',
+  outro: 'Outro cargo',
 }

@@ -67,11 +67,12 @@ def auditoria(acao):
 # ---------- permissões ----------
 
 @pytest.mark.parametrize("perfil", [PerfilUsuario.PRESBITERO, PerfilUsuario.USUARIO])
-def test_so_admin_e_pastor_acessam_sociedades(client, auth, criar_usuario, igreja, ucp, perfil):
+def test_quem_nao_e_admin_nem_pastor_nem_lider_nao_acessa_sociedades(client, auth, criar_usuario, igreja, ucp, perfil):
     u = criar_usuario(igreja, "x@a.org", perfil=perfil)
     hx = auth(u)
     sid = ucp["id"]
-    assert client.get("/sociedades", headers=hx).status_code == 403
+    # a listagem mostra só as sociedades que a pessoa lidera: nenhuma
+    assert client.get("/sociedades", headers=hx).json() == []
     assert client.post("/sociedades", headers=hx, json={"sigla": "UPA"}).status_code == 403
     assert client.get(f"/sociedades/{sid}", headers=hx).status_code == 403
     assert client.get(f"/sociedades/{sid}/socios", headers=hx).status_code == 403

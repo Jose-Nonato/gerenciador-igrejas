@@ -4,11 +4,25 @@ from datetime import date
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from core.exceptions import AppError, ConflictError, NotFoundError
-from models import Reuniao, Socio, Sociedade, Usuario
-from models.enums import SituacaoMembro, StatusPresenca, TipoSocio
-from repositories import AuditoriaRepository, MembroRepository, SociedadeRepository
+from core.exceptions import AppError, ConflictError, ForbiddenError, NotFoundError
+from models import Lideranca, Reuniao, Socio, Sociedade, Usuario
+from models.enums import (
+    CARGOS_UNICOS,
+    CargoLideranca,
+    PerfilUsuario,
+    SituacaoMembro,
+    StatusPresenca,
+    TipoSocio,
+)
+from repositories import (
+    AuditoriaRepository,
+    LiderancaRepository,
+    MembroRepository,
+    SociedadeRepository,
+)
 from schemas import (
+    LiderancaCreate,
+    LiderancaUpdate,
     PresencaItem,
     ReuniaoCreate,
     ReuniaoUpdate,
@@ -18,12 +32,27 @@ from schemas import (
     SociedadeUpdate,
 )
 
-# Quem já saiu do rol não pode ser sócio
+_NOME_CARGO = {
+    CargoLideranca.PRESIDENTE: "presidente",
+    CargoLideranca.VICE_PRESIDENTE: "vice-presidente",
+    CargoLideranca.SECRETARIO: "secretário",
+    CargoLideranca.TESOUREIRO: "tesoureiro",
+    CargoLideranca.CONSELHEIRO: "conselheiro",
+    CargoLideranca.OUTRO: "este cargo",
+}
+
+# Quem já saiu do rol não pode ser sócio nem líder
 _FORA_DO_ROL = {SituacaoMembro.TRANSFERIDO, SituacaoMembro.FALECIDO, SituacaoMembro.EXCLUIDO}
 
 
 class SociedadeController:
-    """Sociedades internas. Todas as operações são de admin e pastor (ver as rotas)."""
+    """Sociedades internas.
+
+    Admin e pastor acessam todas. Quem tem um mandato em exercício na diretoria de uma
+    sociedade (qualquer cargo) vê e edita só a dela, exceto o que é de gestor: criar
+    sociedade, mudar o nome e alterar a diretoria. A autorização está em `get`, pelo qual
+    passa toda operação por sociedade.
+    """
 
     def __init__(
         self,
@@ -31,22 +60,42 @@ class SociedadeController:
         membros: MembroRepository,
         audit: AuditoriaRepository,
         db: Session,
+        lideranca: LiderancaRepository,
     ) -> None:
         self.sociedades = sociedades
+        self.lideranca = lideranca
         self.membros = membros
         self.audit = audit
         self.db = db
 
     # ---------- sociedade ----------
 
-    def listar(self, ator: Usuario) -> list[tuple[Sociedade, int]]:
-        return self.sociedades.list_with_totals(ator.igreja_id)
+    @staticmethod
+    def _e_gestor(ator: Usuario) -> bool:
+        return ator.perfil in (PerfilUsuario.ADMIN, PerfilUsuario.PASTOR)
 
-    def get(self, ator: Usuario, sociedade_id: uuid.UUID) -> Sociedade:
+    def _sociedades_do_ator(self, ator: Usuario) -> set[uuid.UUID]:
+        if ator.membro_id is None:
+            return set()
+        return self.lideranca.sociedades_lideradas(ator.igreja_id, ator.membro_id)
+
+    def listar(self, ator: Usuario) -> list[tuple[Sociedade, int]]:
+        if self._e_gestor(ator):
+            return self.sociedades.list_with_totals(ator.igreja_id)
+        return self.sociedades.list_with_totals(ator.igreja_id, ids=self._sociedades_do_ator(ator))
+
+    def get(
+        self, ator: Usuario, sociedade_id: uuid.UUID, *, so_gestor: bool = False
+    ) -> Sociedade:
         # Sempre filtrado pela igreja do ator: outra igreja aparece como inexistente
         sociedade = self.sociedades.get(ator.igreja_id, sociedade_id)
         if sociedade is None:
             raise NotFoundError("Sociedade não encontrada")
+        if not self._e_gestor(ator):
+            if so_gestor:
+                raise ForbiddenError("Apenas administrador e pastor podem fazer isso")
+            if sociedade.id not in self._sociedades_do_ator(ator):
+                raise ForbiddenError("Você não faz parte da liderança desta sociedade")
         return sociedade
 
     def get_com_total(self, ator: Usuario, sociedade_id: uuid.UUID) -> tuple[Sociedade, int]:
@@ -67,10 +116,18 @@ class SociedadeController:
     def atualizar(
         self, ator: Usuario, sociedade_id: uuid.UUID, data: SociedadeUpdate
     ) -> tuple[Sociedade, int]:
-        sociedade = self.get(ator, sociedade_id)
+        sociedade = self.get(ator, sociedade_id, so_gestor=True)
         self.sociedades.apply(sociedade, {"nome": _limpo(data.nome)})
         self._commit()
         return sociedade, self.sociedades.total_socios(sociedade.id)
+
+    # ---------- busca de membros para o cadastro de sócios ----------
+
+    def buscar_membros(self, ator: Usuario, sociedade_id: uuid.UUID, q: str) -> list:
+        """Busca por nome só com o necessário (nome e nº do rol), para quem lidera a sociedade
+        poder cadastrar sócios sem ter acesso ao rol completo. Só quem ainda faz parte do rol."""
+        self.get(ator, sociedade_id)
+        return self.membros.buscar_elegiveis(ator.igreja_id, q, limit=10)
 
     # ---------- sócios ----------
 
@@ -262,6 +319,86 @@ class SociedadeController:
                 }
             )
         return {"de": de, "ate": ate, "total_reunioes": total, "socios": linhas}
+
+    # ---------- liderança (diretoria) ----------
+
+    def listar_lideranca(
+        self, ator: Usuario, sociedade_id: uuid.UUID, incluir_encerrados: bool
+    ) -> list[tuple[Lideranca, str]]:
+        self.get(ator, sociedade_id)
+        return self.lideranca.list(ator.igreja_id, sociedade_id, incluir_encerrados)
+
+    def adicionar_lideranca(
+        self, ator: Usuario, sociedade_id: uuid.UUID, data: LiderancaCreate
+    ) -> tuple[Lideranca, str]:
+        sociedade = self.get(ator, sociedade_id, so_gestor=True)
+        membro = self.membros.get_in_church(ator.igreja_id, data.membro_id)
+        if membro is None:
+            raise NotFoundError("Membro não encontrado")
+        if membro.situacao in _FORA_DO_ROL:
+            raise ConflictError("Este membro não faz mais parte do rol")
+
+        if data.cargo in CARGOS_UNICOS:
+            if self.lideranca.ocupante_ativo(sociedade.id, data.cargo):
+                raise ConflictError(
+                    f"Já há {_NOME_CARGO[data.cargo]} em exercício: encerre o mandato atual antes"
+                )
+        elif self.lideranca.membro_no_cargo(
+            sociedade.id, membro.id, data.cargo, data.cargo_descricao
+        ):
+            raise ConflictError("Este membro já exerce este cargo")
+
+        campos = {
+            "membro_id": membro.id,
+            "cargo": data.cargo,
+            "cargo_descricao": data.cargo_descricao,
+        }
+        if data.inicio is not None:
+            campos["inicio"] = data.inicio
+        item = self.lideranca.create(ator.igreja_id, sociedade.id, campos)
+        self.audit.registrar(
+            ator.igreja_id, ator.id, "lideranca_adicionada", "lideranca", item.id,
+            {"sociedade": sociedade.sigla.value, "cargo": data.cargo.value, "nome": membro.nome},
+            commit=False,
+        )
+        self._commit("Já há alguém neste cargo em exercício")
+        return item, membro.nome
+
+    def atualizar_lideranca(
+        self,
+        ator: Usuario,
+        sociedade_id: uuid.UUID,
+        lideranca_id: uuid.UUID,
+        data: LiderancaUpdate,
+    ) -> tuple[Lideranca, str]:
+        self.get(ator, sociedade_id, so_gestor=True)
+        achado = self.lideranca.get(ator.igreja_id, sociedade_id, lideranca_id)
+        if achado is None:
+            raise NotFoundError("Registro de liderança não encontrado")
+        item, nome = achado
+
+        inicio = data.inicio or item.inicio
+        fim = data.fim if data.fim is not None else item.fim
+        if fim is not None and fim < inicio:
+            raise AppError("O fim do mandato não pode ser antes do início")
+
+        encerrando = item.fim is None and data.fim is not None
+        campos = {}
+        if data.inicio is not None:
+            campos["inicio"] = data.inicio
+        if data.fim is not None:
+            campos["fim"] = data.fim
+        self.lideranca.apply(item, campos)
+        self.audit.registrar(
+            ator.igreja_id, ator.id,
+            "lideranca_encerrada" if encerrando else "lideranca_alterada",
+            "lideranca", item.id,
+            {"nome": nome, "cargo": item.cargo.value,
+             **{k: v.isoformat() for k, v in campos.items()}},
+            commit=False,
+        )
+        self._commit()
+        return item, nome
 
     # ---------- internos ----------
 

@@ -66,6 +66,9 @@ export function AdicionarSocioDialogo({ sociedadeId, onAdicionado, onFechar }: P
           />
         ) : (
           <SeletorMembro
+            rotulo="Membro"
+            // Busca restrita: quem lidera a sociedade pode não ter acesso ao rol
+            buscar={(q) => sociedadesApi.buscarMembros(sociedadeId, q)}
             nomeSelecionado={membroId ? nomeMembro : null}
             onSelecionar={(m) => {
               setMembroId(m?.id ?? null)

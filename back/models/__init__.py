@@ -4,7 +4,7 @@ from models.igreja import Igreja
 from models.log_auditoria import LogAuditoria
 from models.membro import Membro
 from models.refresh_token import RefreshToken
-from models.sociedade import Presenca, Reuniao, Socio, Sociedade
+from models.sociedade import Lideranca, Presenca, Reuniao, Socio, Sociedade
 from models.token_redefinicao import TokenRedefinicao
 from models.usuario import Usuario
 
@@ -12,6 +12,7 @@ __all__ = [
     "EventoEclesiastico",
     "Familia",
     "Igreja",
+    "Lideranca",
     "LogAuditoria",
     "Membro",
     "Presenca",

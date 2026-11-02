@@ -100,6 +100,29 @@ class TipoSocio(StrEnum):
     NAO_MEMBRO = "nao_membro"
 
 
+class CargoLideranca(StrEnum):
+    """Cargos da diretoria de uma sociedade. Os quatro primeiros têm um único ocupante
+    por vez; conselheiro e outro admitem vários."""
+
+    PRESIDENTE = "presidente"
+    VICE_PRESIDENTE = "vice_presidente"
+    SECRETARIO = "secretario"
+    TESOUREIRO = "tesoureiro"
+    CONSELHEIRO = "conselheiro"
+    OUTRO = "outro"
+
+
+# Cargos com um único ocupante em exercício por sociedade
+CARGOS_UNICOS = frozenset(
+    {
+        CargoLideranca.PRESIDENTE,
+        CargoLideranca.VICE_PRESIDENTE,
+        CargoLideranca.SECRETARIO,
+        CargoLideranca.TESOUREIRO,
+    }
+)
+
+
 class StatusPresenca(StrEnum):
     PRESENTE = "P"
     AUSENTE = "A"

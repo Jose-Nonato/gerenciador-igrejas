@@ -3,7 +3,7 @@ from datetime import date
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from models.enums import SiglaSociedade, StatusPresenca, TipoSocio
+from models.enums import CargoLideranca, SiglaSociedade, StatusPresenca, TipoSocio
 
 
 def _nao_futura(valor: date | None) -> date | None:
@@ -173,3 +173,64 @@ class FrequenciaOut(BaseModel):
     ate: date | None
     total_reunioes: int
     socios: list[FrequenciaSocioOut]
+
+
+# ---------- liderança (diretoria) ----------
+
+class LiderancaCreate(BaseModel):
+    membro_id: uuid.UUID
+    cargo: CargoLideranca
+    cargo_descricao: str | None = Field(default=None, max_length=100)
+    inicio: date | None = Field(default=None, description="Padrão: hoje")
+
+    _inicio = field_validator("inicio")(_nao_futura)
+
+    @field_validator("cargo_descricao")
+    @classmethod
+    def _limpa(cls, v: str | None) -> str | None:
+        return v.strip() or None if v is not None else None
+
+    @model_validator(mode="after")
+    def _descricao(self):
+        if self.cargo == CargoLideranca.OUTRO and not self.cargo_descricao:
+            raise ValueError("Descreva o cargo (cargo_descricao)")
+        if self.cargo != CargoLideranca.OUTRO and self.cargo_descricao:
+            raise ValueError("cargo_descricao só se aplica ao cargo 'outro'")
+        return self
+
+
+class LiderancaUpdate(BaseModel):
+    """Corrigir as datas ou encerrar o mandato (`fim`). O cargo e a pessoa não mudam:
+    para trocar, encerre o mandato e registre outro."""
+
+    inicio: date | None = None
+    fim: date | None = None
+
+    _datas = field_validator("inicio", "fim")(_nao_futura)
+
+    @model_validator(mode="after")
+    def _algum_campo(self):
+        if self.inicio is None and self.fim is None:
+            raise ValueError("Informe ao menos um campo: inicio ou fim")
+        return self
+
+
+class LiderancaOut(BaseModel):
+    id: uuid.UUID
+    sociedade_id: uuid.UUID
+    membro_id: uuid.UUID
+    nome: str
+    cargo: CargoLideranca
+    cargo_descricao: str | None
+    inicio: date
+    fim: date | None = Field(description="Nulo = em exercício")
+
+
+class MembroResumo(BaseModel):
+    """Só o necessário para escolher uma pessoa: o líder não vê os demais dados do membro."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    nome: str
+    numero_rol: int | None

@@ -2,6 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { sociedadesApi } from '../api/endpoints'
 import { Carregando } from '../components/Carregando'
 import { FrequenciaTab } from '../components/FrequenciaTab'
+import { LiderancaTab } from '../components/LiderancaTab'
 import { ReunioesTab } from '../components/ReunioesTab'
 import { SociosTab } from '../components/SociosTab'
 import { SIGLA } from '../rotulos'
@@ -9,6 +10,7 @@ import { useCarga } from '../useCarga'
 
 const ABAS = [
   { id: 'socios', rotulo: 'Sócios' },
+  { id: 'lideranca', rotulo: 'Liderança' },
   { id: 'reunioes', rotulo: 'Reuniões' },
   { id: 'frequencia', rotulo: 'Frequência' },
 ] as const
@@ -61,6 +63,7 @@ export function SociedadePage() {
 
       <div role="tabpanel" id={`painel-${aba}`} aria-labelledby={`aba-${aba}`} className="painel">
         {aba === 'socios' && <SociosTab sociedadeId={id} onMudou={recarregar} />}
+        {aba === 'lideranca' && <LiderancaTab sociedadeId={id} />}
         {aba === 'reunioes' && <ReunioesTab sociedadeId={id} />}
         {aba === 'frequencia' && <FrequenciaTab sociedadeId={id} />}
       </div>

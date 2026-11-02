@@ -1,19 +1,28 @@
 import { useEffect, useId, useState } from 'react'
 import { membrosApi } from '../api/endpoints'
-import type { Membro } from '../api/types'
+import type { MembroResumo } from '../api/types'
 
 interface Props {
-  /** Membro vinculado agora (null = nenhum) */
+  /** Membro escolhido agora (null = nenhum) */
   nomeSelecionado: string | null
-  onSelecionar: (membro: Membro | null) => void
+  onSelecionar: (membro: MembroResumo | null) => void
+  rotulo?: string
+  /**
+   * Como buscar. Por padrão usa a busca do rol (admin, pastor e presbítero). Quem não tem
+   * acesso ao rol, como o líder de uma sociedade, passa uma busca restrita.
+   */
+  buscar?: (q: string) => Promise<MembroResumo[]>
 }
 
+const buscarNoRol = (q: string): Promise<MembroResumo[]> =>
+  membrosApi.listar({ q, limit: 8 }).then((res) => res.items)
+
 /** Escolha de membro por busca de nome (o rol pode ter centenas de pessoas). */
-export function SeletorMembro({ nomeSelecionado, onSelecionar }: Props) {
+export function SeletorMembro({ nomeSelecionado, onSelecionar, rotulo = 'Membro vinculado', buscar = buscarNoRol }: Props) {
   const inputId = useId()
   const [busca, setBusca] = useState('')
   const [q, setQ] = useState('')
-  const [resultado, setResultado] = useState<{ q: string; itens: Membro[]; falhou: boolean } | null>(null)
+  const [resultado, setResultado] = useState<{ q: string; itens: MembroResumo[]; falhou: boolean } | null>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setQ(busca.trim()), 300)
@@ -23,13 +32,14 @@ export function SeletorMembro({ nomeSelecionado, onSelecionar }: Props) {
   useEffect(() => {
     if (q.length < 2) return
     let ativo = true
-    membrosApi
-      .listar({ q, limit: 8 })
-      .then((res) => ativo && setResultado({ q, itens: res.items, falhou: false }))
+    buscar(q)
+      .then((itens) => ativo && setResultado({ q, itens, falhou: false }))
       .catch(() => ativo && setResultado({ q, itens: [], falhou: true }))
     return () => {
       ativo = false
     }
+    // a função de busca não muda durante a vida do componente; `q` é quem dispara a consulta
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q])
 
   const mostrando = q.length >= 2 ? resultado : null
@@ -37,7 +47,7 @@ export function SeletorMembro({ nomeSelecionado, onSelecionar }: Props) {
 
   return (
     <div className="campo">
-      <label htmlFor={inputId}>Membro vinculado</label>
+      <label htmlFor={inputId}>{rotulo}</label>
       <p className="atual">
         {nomeSelecionado ? (
           <>

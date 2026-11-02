@@ -1,12 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
-import { gerenciaSociedades } from '../permissoes'
+import { useAcessoSociedades } from '../useAcessoSociedades'
 import { PERFIL } from '../rotulos'
 
 export function Layout() {
   const { usuario, logout } = useAuth()
   const navegar = useNavigate()
   const equipe = usuario?.perfil !== 'usuario'
+  const sociedades = useAcessoSociedades()
 
   async function sair() {
     await logout()
@@ -25,7 +26,7 @@ export function Layout() {
             Início
           </NavLink>
           {equipe && <NavLink to="/membros">Rol de membros</NavLink>}
-          {gerenciaSociedades(usuario) && <NavLink to="/sociedades">Sociedades</NavLink>}
+          {sociedades.temAcesso && <NavLink to="/sociedades">Sociedades</NavLink>}
           {equipe && <NavLink to="/usuarios">Usuários</NavLink>}
           <NavLink to="/trocar-senha">Alterar senha</NavLink>
         </nav>

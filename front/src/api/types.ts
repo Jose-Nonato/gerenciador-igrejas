@@ -214,3 +214,37 @@ export interface Frequencia {
   total_reunioes: number
   socios: FrequenciaSocio[]
 }
+
+export type CargoLideranca =
+  | 'presidente'
+  | 'vice_presidente'
+  | 'secretario'
+  | 'tesoureiro'
+  | 'conselheiro'
+  | 'outro'
+
+export interface Lideranca {
+  id: string
+  sociedade_id: string
+  membro_id: string
+  nome: string
+  cargo: CargoLideranca
+  cargo_descricao: string | null
+  inicio: string
+  /** Nulo = em exercício */
+  fim: string | null
+}
+
+export interface NovaLideranca {
+  membro_id: string
+  cargo: CargoLideranca
+  cargo_descricao?: string | null
+  inicio?: string
+}
+
+/** Dados mínimos de um membro (a busca restrita das sociedades não revela o resto). */
+export interface MembroResumo {
+  id: string
+  nome: string
+  numero_rol: number | null
+}

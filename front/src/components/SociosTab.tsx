@@ -5,6 +5,7 @@ import { sociedadesApi } from '../api/endpoints'
 import type { Socio } from '../api/types'
 import { formatarData } from '../formatar'
 import { TIPO_SOCIO } from '../rotulos'
+import { useAcessoSociedades } from '../useAcessoSociedades'
 import { useCarga } from '../useCarga'
 import { AdicionarSocioDialogo } from './AdicionarSocioDialogo'
 import { Carregando } from './Carregando'
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function SociosTab({ sociedadeId, onMudou }: Props) {
+  const { verFichas } = useAcessoSociedades()
   const [incluirEx, setIncluirEx] = useState(false)
   const { dados: socios, erro, carregando, recarregar } = useCarga(
     () => sociedadesApi.socios(sociedadeId, incluirEx),
@@ -87,7 +89,7 @@ export function SociosTab({ sociedadeId, onMudou }: Props) {
             {socios.map((s) => (
               <tr key={s.id}>
                 <td>
-                  {s.membro_id ? (
+                  {s.membro_id && verFichas ? (
                     <Link to={`/membros/${s.membro_id}`} className="link-nome">{s.nome}</Link>
                   ) : (
                     s.nome

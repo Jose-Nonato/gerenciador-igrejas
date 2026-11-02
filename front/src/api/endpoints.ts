@@ -8,9 +8,12 @@ import type {
   FiltroMembros,
   Frequencia,
   ItemPresenca,
+  Lideranca,
   Membro,
   MembroPage,
+  MembroResumo,
   NovaReuniao,
+  NovaLideranca,
   NovoEvento,
   NovoMembro,
   NovoSocio,
@@ -77,6 +80,9 @@ export const sociedadesApi = {
   atualizar: (id: string, nome: string | null) =>
     api<Sociedade>(`/sociedades/${id}`, { method: 'PATCH', json: { nome } }),
 
+  /** Busca mínima (nome e nº do rol) para cadastrar sócios; vale também para quem não vê o rol */
+  buscarMembros: (id: string, q: string) =>
+    api<MembroResumo[]>(`/sociedades/${id}/membros`, { query: { q } }),
   socios: (id: string, incluirEx = false) =>
     api<Socio[]>(`/sociedades/${id}/socios`, { query: { incluir_ex: incluirEx ? 'true' : undefined } }),
   adicionarSocio: (id: string, dados: NovoSocio) =>
@@ -86,6 +92,16 @@ export const sociedadesApi = {
   /** O sócio sai da sociedade (data de saída); a presença histórica é mantida */
   removerSocio: (id: string, socioId: string) =>
     api<void>(`/sociedades/${id}/socios/${socioId}`, { method: 'DELETE' }),
+
+  lideranca: (id: string, incluirEncerrados = false) =>
+    api<Lideranca[]>(`/sociedades/${id}/lideranca`, {
+      query: { incluir_encerrados: incluirEncerrados ? 'true' : undefined },
+    }),
+  adicionarLideranca: (id: string, dados: NovaLideranca) =>
+    api<Lideranca>(`/sociedades/${id}/lideranca`, { method: 'POST', json: dados }),
+  /** Encerra o mandato na data informada; o registro e o histórico permanecem */
+  encerrarLideranca: (id: string, liderancaId: string, fim: string) =>
+    api<Lideranca>(`/sociedades/${id}/lideranca/${liderancaId}`, { method: 'PATCH', json: { fim } }),
 
   reunioes: (id: string) => api<Reuniao[]>(`/sociedades/${id}/reunioes`),
   reuniao: (id: string, reuniaoId: string) =>

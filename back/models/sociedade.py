@@ -17,7 +17,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from core.database import Base
 from models.base import IgrejaScoped, UUIDPk
-from models.enums import SiglaSociedade, StatusPresenca, TipoSocio, enum_column
+from models.enums import (
+    CARGOS_UNICOS,
+    CargoLideranca,
+    SiglaSociedade,
+    StatusPresenca,
+    TipoSocio,
+    enum_column,
+)
 
 
 class Sociedade(UUIDPk, IgrejaScoped, Base):
@@ -91,3 +98,41 @@ class Presenca(IgrejaScoped, Base):
         ForeignKey("socio.id", ondelete="RESTRICT"), index=True
     )
     status: Mapped[StatusPresenca] = mapped_column(enum_column(StatusPresenca))
+
+
+_UNICOS_SQL = ", ".join(repr(c.value) for c in sorted(CARGOS_UNICOS))
+
+
+class Lideranca(UUIDPk, IgrejaScoped, Base):
+    """Diretoria da sociedade: quem ocupa cada cargo e em que período. É só um registro:
+    não concede permissão no sistema. Encerrar o mandato grava `fim` e mantém o histórico."""
+
+    __tablename__ = "lideranca"
+    __table_args__ = (
+        CheckConstraint(
+            "(cargo = 'outro' AND cargo_descricao IS NOT NULL)"
+            " OR (cargo <> 'outro' AND cargo_descricao IS NULL)",
+            name="lideranca_descricao",
+        ),
+        CheckConstraint("fim IS NULL OR fim >= inicio", name="lideranca_periodo"),
+        # Presidente, vice, secretário e tesoureiro: só um em exercício por sociedade
+        Index(
+            "uq_lideranca_cargo_unico_ativo",
+            "sociedade_id",
+            "cargo",
+            unique=True,
+            postgresql_where=text(f"fim IS NULL AND cargo IN ({_UNICOS_SQL})"),
+        ),
+    )
+
+    sociedade_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("sociedade.id", ondelete="RESTRICT"), index=True
+    )
+    membro_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("membro.id", ondelete="RESTRICT"), index=True
+    )
+    cargo: Mapped[CargoLideranca] = mapped_column(enum_column(CargoLideranca))
+    # Só para o cargo "outro" (ex.: "Diretor de música")
+    cargo_descricao: Mapped[str | None] = mapped_column(String(100))
+    inicio: Mapped[date] = mapped_column(Date, server_default=func.current_date())
+    fim: Mapped[date | None] = mapped_column(Date)

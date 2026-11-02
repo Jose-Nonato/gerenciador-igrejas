@@ -24,6 +24,7 @@ from repositories import (
     FamiliaRepository,
     IgrejaRepository,
     MembroRepository,
+    LiderancaRepository,
     RefreshTokenRepository,
     SociedadeRepository,
     TokenRedefinicaoRepository,
@@ -81,7 +82,11 @@ def get_membro_controller(db: DbSession) -> MembroController:
 
 def get_sociedade_controller(db: DbSession) -> SociedadeController:
     return SociedadeController(
-        SociedadeRepository(db), MembroRepository(db), AuditoriaRepository(db), db
+        SociedadeRepository(db),
+        MembroRepository(db),
+        AuditoriaRepository(db),
+        db,
+        LiderancaRepository(db),
     )
 
 

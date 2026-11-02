@@ -36,13 +36,12 @@ export default function App() {
                 <Route path="membros/:id/editar" element={<EditarMembroPage />} />
                 <Route path="usuarios" element={<UsuariosPage />} />
               </Route>
-              {/* Sociedades internas: só admin e pastor (o backend também exige) */}
-              <Route element={<RequireAuth perfis={['admin', 'pastor']} />}>
-                <Route path="sociedades" element={<SociedadesPage />} />
-                <Route path="sociedades/:id" element={<SociedadePage />} />
-                <Route path="sociedades/:id/reunioes/nova" element={<ReuniaoPage />} />
-                <Route path="sociedades/:id/reunioes/:reuniaoId" element={<ReuniaoPage />} />
-              </Route>
+              {/* Sociedades: admin e pastor veem todas; quem está na diretoria vê só a sua.
+                  O backend decide por sociedade; a lista já vem filtrada. */}
+              <Route path="sociedades" element={<SociedadesPage />} />
+              <Route path="sociedades/:id" element={<SociedadePage />} />
+              <Route path="sociedades/:id/reunioes/nova" element={<ReuniaoPage />} />
+              <Route path="sociedades/:id/reunioes/:reuniaoId" element={<ReuniaoPage />} />
             </Route>
           </Route>
 

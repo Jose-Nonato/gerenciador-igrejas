@@ -4,9 +4,9 @@ from datetime import date
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from models.enums import SiglaSociedade, StatusPresenca
+from models.enums import CargoLideranca, SiglaSociedade, StatusPresenca
 from models.membro import Membro
-from models.sociedade import Presenca, Reuniao, Socio, Sociedade
+from models.sociedade import Lideranca, Presenca, Reuniao, Socio, Sociedade
 
 # Os métodos de escrita NÃO fazem commit: lançar presenças altera presença e auditoria na
 # mesma transação, e o commit fica com o controller.
@@ -45,7 +45,9 @@ class SociedadeRepository:
             or 0
         )
 
-    def list_with_totals(self, igreja_id: uuid.UUID) -> list[tuple[Sociedade, int]]:
+    def list_with_totals(
+        self, igreja_id: uuid.UUID, ids: set[uuid.UUID] | None = None
+    ) -> list[tuple[Sociedade, int]]:
         total = (
             select(func.count())
             .select_from(Socio)
@@ -54,11 +56,10 @@ class SociedadeRepository:
             .correlate(Sociedade)
             .scalar_subquery()
         )
-        linhas = self.db.execute(
-            select(Sociedade, total)
-            .where(Sociedade.igreja_id == igreja_id)
-            .order_by(Sociedade.sigla)
-        )
+        consulta = select(Sociedade, total).where(Sociedade.igreja_id == igreja_id)
+        if ids is not None:
+            consulta = consulta.where(Sociedade.id.in_(ids))
+        linhas = self.db.execute(consulta.order_by(Sociedade.sigla))
         return [(s, t) for s, t in linhas]
 
     def create(self, igreja_id: uuid.UUID, sigla: SiglaSociedade, nome: str | None) -> Sociedade:
@@ -236,3 +237,89 @@ class SociedadeRepository:
         for socio_id, status, n in self.db.execute(consulta):
             saida.setdefault(socio_id, {})[status] = n
         return saida
+
+
+class LiderancaRepository:
+    """Diretoria das sociedades. Sem commit nas escritas (o commit é do controller)."""
+
+    # Líder cujo membro foi excluído (exclusão lógica) some das listagens
+    def __init__(self, db: Session) -> None:
+        self.db = db
+
+    def _base(self):
+        return select(Lideranca, Membro.nome).join(Membro, Lideranca.membro_id == Membro.id).where(
+            Membro.excluido_em.is_(None)
+        )
+
+    def list(
+        self, igreja_id: uuid.UUID, sociedade_id: uuid.UUID, incluir_encerrados: bool = False
+    ) -> list[tuple[Lideranca, str]]:
+        consulta = self._base().where(
+            Lideranca.igreja_id == igreja_id, Lideranca.sociedade_id == sociedade_id
+        )
+        if not incluir_encerrados:
+            consulta = consulta.where(Lideranca.fim.is_(None))
+        # Em exercício primeiro, depois do mandato mais recente ao mais antigo
+        consulta = consulta.order_by(
+            Lideranca.fim.is_not(None), Lideranca.inicio.desc(), Membro.nome, Lideranca.id
+        )
+        return [(item, nome) for item, nome in self.db.execute(consulta)]
+
+    def get(
+        self, igreja_id: uuid.UUID, sociedade_id: uuid.UUID, lideranca_id: uuid.UUID
+    ) -> tuple[Lideranca, str] | None:
+        linha = self.db.execute(
+            self._base().where(
+                Lideranca.id == lideranca_id,
+                Lideranca.igreja_id == igreja_id,
+                Lideranca.sociedade_id == sociedade_id,
+            )
+        ).first()
+        return (linha[0], linha[1]) if linha else None
+
+    def sociedades_lideradas(self, igreja_id: uuid.UUID, membro_id: uuid.UUID) -> set[uuid.UUID]:
+        """Sociedades em que o membro tem um mandato em exercício (qualquer cargo)."""
+        return set(
+            self.db.scalars(
+                select(Lideranca.sociedade_id).where(
+                    Lideranca.igreja_id == igreja_id,
+                    Lideranca.membro_id == membro_id,
+                    Lideranca.fim.is_(None),
+                )
+            )
+        )
+
+    def ocupante_ativo(self, sociedade_id: uuid.UUID, cargo: CargoLideranca) -> Lideranca | None:
+        return self.db.scalar(
+            select(Lideranca).where(
+                Lideranca.sociedade_id == sociedade_id,
+                Lideranca.cargo == cargo,
+                Lideranca.fim.is_(None),
+            )
+        )
+
+    def membro_no_cargo(
+        self, sociedade_id: uuid.UUID, membro_id: uuid.UUID, cargo: CargoLideranca,
+        descricao: str | None,
+    ) -> bool:
+        consulta = select(Lideranca.id).where(
+            Lideranca.sociedade_id == sociedade_id,
+            Lideranca.membro_id == membro_id,
+            Lideranca.cargo == cargo,
+            Lideranca.fim.is_(None),
+        )
+        if descricao is not None:
+            consulta = consulta.where(func.lower(Lideranca.cargo_descricao) == descricao.lower())
+        return self.db.scalar(consulta) is not None
+
+    def create(self, igreja_id: uuid.UUID, sociedade_id: uuid.UUID, campos: dict) -> Lideranca:
+        item = Lideranca(igreja_id=igreja_id, sociedade_id=sociedade_id, **campos)
+        self.db.add(item)
+        self.db.flush()
+        self.db.refresh(item)  # traz `inicio` (default do banco)
+        return item
+
+    def apply(self, item: Lideranca, campos: dict) -> None:
+        for chave, valor in campos.items():
+            setattr(item, chave, valor)
+        self.db.flush()

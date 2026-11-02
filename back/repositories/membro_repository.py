@@ -60,6 +60,22 @@ class MembroRepository:
             consulta = consulta.limit(limit)
         return list(self.db.scalars(consulta)), total
 
+    def buscar_elegiveis(self, igreja_id: uuid.UUID, q: str, limit: int) -> list[Membro]:
+        """Membros que ainda fazem parte do rol (ativos ou em disciplina), por parte do nome."""
+        return list(
+            self.db.scalars(
+                select(Membro)
+                .where(
+                    Membro.igreja_id == igreja_id,
+                    Membro.excluido_em.is_(None),
+                    Membro.situacao.in_([SituacaoMembro.ATIVO, SituacaoMembro.EM_DISCIPLINA]),
+                    Membro.nome.icontains(q, autoescape=True),
+                )
+                .order_by(Membro.nome, Membro.id)
+                .limit(limit)
+            )
+        )
+
     def numero_rol_em_uso(
         self, igreja_id: uuid.UUID, numero: int, ignorar_id: uuid.UUID | None = None
     ) -> bool:

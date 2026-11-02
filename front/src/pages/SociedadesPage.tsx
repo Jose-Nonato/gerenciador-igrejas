@@ -6,11 +6,13 @@ import type { Sociedade } from '../api/types'
 import { Carregando } from '../components/Carregando'
 import { NovaSociedadeDialogo } from '../components/NovaSociedadeDialogo'
 import { SIGLA, SIGLAS } from '../rotulos'
+import { useAcessoSociedades } from '../useAcessoSociedades'
 
 export function SociedadesPage() {
   const [sociedades, setSociedades] = useState<Sociedade[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [criando, setCriando] = useState(false)
+  const { gestor } = useAcessoSociedades()
 
   useEffect(() => {
     let ativo = true
@@ -32,8 +34,8 @@ export function SociedadesPage() {
   return (
     <section className="pagina">
       <div className="titulo-linha">
-        <h1>Sociedades internas</h1>
-        {disponiveis.length > 0 && (
+        <h1>{gestor ? 'Sociedades internas' : 'Minha sociedade'}</h1>
+        {gestor && disponiveis.length > 0 && (
           <button type="button" className="botao" onClick={() => setCriando(true)}>
             Nova sociedade
           </button>
@@ -41,7 +43,11 @@ export function SociedadesPage() {
       </div>
 
       {sociedades.length === 0 ? (
-        <p className="vazio-texto">Nenhuma sociedade criada ainda. Comece criando a primeira.</p>
+        <p className="vazio-texto">
+          {gestor
+            ? 'Nenhuma sociedade criada ainda. Comece criando a primeira.'
+            : 'Você não está na diretoria de nenhuma sociedade.'}
+        </p>
       ) : (
         <div className="atalhos">
           {sociedades.map((s) => (

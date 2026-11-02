@@ -13,6 +13,10 @@ from schemas.rol import (
     RegistroEventoOut,
 )
 from schemas.sociedade import (
+    MembroResumo,
+    LiderancaCreate,
+    LiderancaOut,
+    LiderancaUpdate,
     FrequenciaOut,
     FrequenciaSocioOut,
     PresencaItem,
@@ -41,6 +45,10 @@ from schemas.usuario import (
 )
 
 __all__ = [
+    "LiderancaCreate",
+    "LiderancaOut",
+    "LiderancaUpdate",
+    "MembroResumo",
     "FrequenciaOut",
     "FrequenciaSocioOut",
     "PresencaItem",
