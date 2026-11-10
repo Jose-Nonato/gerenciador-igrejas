@@ -144,7 +144,10 @@ export function GerenciarComunicadosPage() {
           <tbody>
             {dados.items.map((c) => (
               <tr key={c.id}>
-                <td className="titulo-celula">{c.titulo}</td>
+                <td className="titulo-celula">
+                  {c.titulo}
+                  {c.tem_imagem && <span className="selo selo-imagem" title="Este comunicado tem imagem">Imagem</span>}
+                </td>
                 <td>{CATEGORIA[c.categoria]}</td>
                 <td>{rotuloPublico(c)}</td>
                 <td><span className={`selo post-${c.status}`}>{STATUS_POST[c.status]}</span></td>

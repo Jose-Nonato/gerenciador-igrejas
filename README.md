@@ -33,6 +33,8 @@ pip install -r requirements-dev.txt
 | `RESET_TOKEN_EXPIRE_HOURS` | não | padrão 24 |
 | `FRONTEND_URL` | não | padrão `http://localhost:3000`; usada nos links de e-mail e como origem CORS |
 | `CORS_ORIGINS` | não | origens extras permitidas, separadas por vírgula |
+| `UPLOAD_DIR` | não | pasta das imagens dos comunicados, padrão `uploads` (relativa a `back/`; ignorada pelo git) |
+| `MAX_IMAGEM_MB` | não | tamanho máximo de cada imagem, padrão 5 |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | não | sem `SMTP_HOST` os e-mails só são registrados no log |
 
 ### Banco de dados

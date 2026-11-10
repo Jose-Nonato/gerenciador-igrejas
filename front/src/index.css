@@ -222,3 +222,5 @@ textarea:focus-visible { outline: 3px solid var(--primaria); outline-offset: 2px
 
 /* imagem do comunicado */
 .comunicado-imagem { display: block; max-width: 100%; max-height: 420px; object-fit: contain; border-radius: var(--raio); margin: 0 0 .75rem; background: var(--fundo); }
+
+.selo-imagem { margin-left: .5rem; font-weight: 400; }
