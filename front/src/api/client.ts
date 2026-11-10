@@ -85,6 +85,8 @@ interface Opcoes {
   method?: string
   json?: unknown
   form?: Record<string, string>
+  /** Upload de arquivo (multipart); o navegador define o Content-Type */
+  arquivo?: FormData
   query?: Record<string, string | number | undefined>
   /** false = rota pública, sem Authorization nem tentativa de renovar */
   auth?: boolean
@@ -100,6 +102,8 @@ async function enviar(path: string, opcoes: Opcoes): Promise<Response> {
   if (opcoes.json !== undefined) {
     headers['Content-Type'] = 'application/json'
     body = JSON.stringify(opcoes.json)
+  } else if (opcoes.arquivo) {
+    body = opcoes.arquivo
   } else if (opcoes.form) {
     body = new URLSearchParams(opcoes.form)
   }

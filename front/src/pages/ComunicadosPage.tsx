@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { comunicadosApi } from '../api/endpoints'
 import type { CategoriaPost } from '../api/types'
 import { Carregando } from '../components/Carregando'
+import { ImagemComunicado } from '../components/ImagemComunicado'
 import { formatarDataHora } from '../formatar'
 import { CATEGORIA, rotuloPublico } from '../rotulos'
 import { useAcessoSociedades } from '../useAcessoSociedades'
@@ -68,6 +69,7 @@ export function ComunicadosPage() {
                     {formatarDataHora(c.data_publicacao)}
                     {c.autor ? ` · ${c.autor}` : ''}
                   </p>
+                  {c.tem_imagem && <ImagemComunicado id={c.id} titulo={c.titulo} versao={c.atualizado_em} />}
                   <p className="comunicado-corpo">{c.corpo}</p>
                 </article>
               ))}

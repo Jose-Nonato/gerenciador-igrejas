@@ -272,6 +272,8 @@ export interface Comunicado {
   publico: TipoPublico
   sociedade_id: string | null
   sociedade_sigla: string | null
+  /** Baixe com comunicadosApi.imagem(id) */
+  tem_imagem: boolean
   /** Efetivo: um agendado cuja hora já chegou vem como publicado */
   status: StatusPost
   publicar_em: string | null
@@ -303,6 +305,12 @@ export interface FiltroComunicados {
   status?: StatusPost
   limit?: number
   offset?: number
+}
+
+export interface ConviteLink {
+  /** Link de uso único para o convidado definir a senha */
+  link: string
+  expira_em: string
 }
 
 export interface ConviteEmMassa {

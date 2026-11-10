@@ -219,3 +219,6 @@ textarea:focus-visible { outline: 3px solid var(--primaria); outline-offset: 2px
 @media (max-width: 600px) {
   .usuario { width: 100%; justify-content: space-between; }
 }
+
+/* imagem do comunicado */
+.comunicado-imagem { display: block; max-width: 100%; max-height: 420px; object-fit: contain; border-radius: var(--raio); margin: 0 0 .75rem; background: var(--fundo); }

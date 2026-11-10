@@ -7,6 +7,7 @@ import type {
   Comunicado,
   ComunicadoPage,
   ConviteEmMassa,
+  ConviteLink,
   Evento,
   Familia,
   FiltroComunicados,
@@ -61,6 +62,8 @@ export const usuariosApi = {
   atualizar: (id: string, dados: AtualizacaoUsuario) =>
     api<Usuario>(`/usuarios/${id}`, { method: 'PATCH', json: dados }),
   reenviarConvite: (id: string) => api<void>(`/usuarios/${id}/convite`, { method: 'POST' }),
+  /** Gera um novo link de convite para copiar (sem e-mail); o anterior deixa de valer */
+  linkConvite: (id: string) => api<ConviteLink>(`/usuarios/${id}/link-convite`, { method: 'POST' }),
 }
 
 export const membrosApi = {
@@ -146,4 +149,13 @@ export const comunicadosApi = {
   despublicar: (id: string) => api<Comunicado>(`/comunicados/${id}/despublicar`, { method: 'POST' }),
   /** Exclusão lógica */
   excluir: (id: string) => api<void>(`/comunicados/${id}`, { method: 'DELETE' }),
+  /** Define ou troca a imagem (JPEG, PNG, GIF ou WebP, até 5 MB) */
+  enviarImagem: (id: string, arquivo: File) => {
+    const dados = new FormData()
+    dados.append('arquivo', arquivo)
+    return api<Comunicado>(`/comunicados/${id}/imagem`, { method: 'PUT', arquivo: dados })
+  },
+  removerImagem: (id: string) => api<Comunicado>(`/comunicados/${id}/imagem`, { method: 'DELETE' }),
+  /** A rota exige login, então a imagem vem como blob (um <img src> não envia o token) */
+  imagem: (id: string) => apiBlob(`/comunicados/${id}/imagem`),
 }

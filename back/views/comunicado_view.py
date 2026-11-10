@@ -1,7 +1,10 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi.responses import FileResponse
+
+from core.config import settings
 
 from models import Comunicado
 from models.enums import CategoriaPost, StatusPost
@@ -33,6 +36,7 @@ def _out(linha: tuple[Comunicado, str | None, str | None]) -> dict:
         "publico": c.publico,
         "sociedade_id": c.sociedade_id,
         "sociedade_sigla": sigla,
+        "tem_imagem": c.imagem is not None,
         "status": efetivo,
         "publicar_em": c.publicar_em,
         "data_publicacao": c.publicado_em or c.publicar_em,
@@ -109,3 +113,32 @@ def despublicar(comunicado_id: uuid.UUID, ator: ActiveUser, controller: Comunica
 def excluir(comunicado_id: uuid.UUID, ator: ActiveUser, controller: ComunicadoCtrl):
     """Exclusão lógica."""
     controller.excluir(ator, comunicado_id)
+
+
+@router.put("/{comunicado_id}/imagem", response_model=ComunicadoOut)
+async def definir_imagem(
+    comunicado_id: uuid.UUID,
+    ator: ActiveUser,
+    controller: ComunicadoCtrl,
+    arquivo: UploadFile = File(description="JPEG, PNG, GIF ou WebP"),
+):
+    """Define (ou troca) a imagem do comunicado."""
+    limite = settings.MAX_IMAGEM_MB * 1024 * 1024
+    dados = await arquivo.read(limite + 1)  # o +1 basta para o controller recusar o excesso
+    return _out(controller.definir_imagem(ator, comunicado_id, dados))
+
+
+@router.get("/{comunicado_id}/imagem")
+def baixar_imagem(comunicado_id: uuid.UUID, ator: ActiveUser, controller: ComunicadoCtrl):
+    caminho, media_type = controller.obter_imagem(ator, comunicado_id)
+    return FileResponse(
+        caminho,
+        media_type=media_type,
+        # o nome do arquivo muda a cada troca, então o navegador pode guardar a imagem
+        headers={"Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff"},
+    )
+
+
+@router.delete("/{comunicado_id}/imagem", response_model=ComunicadoOut)
+def remover_imagem(comunicado_id: uuid.UUID, ator: ActiveUser, controller: ComunicadoCtrl):
+    return _out(controller.remover_imagem(ator, comunicado_id))

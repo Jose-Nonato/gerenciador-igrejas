@@ -37,6 +37,8 @@ class Comunicado(UUIDPk, IgrejaScoped, Base):
     sociedade_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("sociedade.id", ondelete="RESTRICT"), index=True
     )
+    # Nome do arquivo em core.armazenamento (gerado pelo servidor); nulo = sem imagem
+    imagem: Mapped[str | None] = mapped_column(String(80))
     status: Mapped[StatusPost] = mapped_column(
         enum_column(StatusPost), default=StatusPost.RASCUNHO
     )

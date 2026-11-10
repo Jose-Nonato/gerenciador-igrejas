@@ -65,6 +65,7 @@ class ComunicadoOut(BaseModel):
     publico: TipoPublico
     sociedade_id: uuid.UUID | None
     sociedade_sigla: str | None
+    tem_imagem: bool = Field(description="Baixe a imagem em GET /comunicados/{id}/imagem")
     status: StatusPost = Field(
         description="Efetivo: um comunicado agendado cuja hora já chegou aparece como publicado"
     )

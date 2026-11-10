@@ -1,4 +1,5 @@
 import os
+import tempfile
 import re
 from pathlib import Path
 from types import SimpleNamespace
@@ -22,6 +23,8 @@ os.environ["DATABASE_URL"] = TEST_URL.render_as_string(hide_password=False)
 os.environ.setdefault("JWT_SECRET", _env["JWT_SECRET"])
 # Os testes montam o banco sozinhos (fixture _banco); a migração na inicialização só atrapalharia
 os.environ["AUTO_MIGRATE"] = "false"
+# Imagens dos testes vão para uma pasta temporária, nunca para a de desenvolvimento
+os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="gi-uploads-")
 
 
 def recreate_database(name: str) -> None:

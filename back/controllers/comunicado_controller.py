@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+from core import armazenamento
+from core.config import settings
 from core.exceptions import AppError, ConflictError, ForbiddenError, NotFoundError
 from models import Comunicado, Usuario
 from models.enums import (
@@ -208,6 +210,51 @@ class ComunicadoController:
         self.comunicados.apply(comunicado, {"excluido_em": datetime.now(timezone.utc)})
         self._auditar(ator, "comunicado_excluido", comunicado, {"titulo": comunicado.titulo})
         self.db.commit()
+
+    # ---------- imagem ----------
+
+    def definir_imagem(self, ator: Usuario, comunicado_id: uuid.UUID, dados: bytes) -> Linha:
+        comunicado = self._gerivel(ator, comunicado_id)
+        limite = settings.MAX_IMAGEM_MB * 1024 * 1024
+        if not dados:
+            raise AppError("Arquivo vazio")
+        if len(dados) > limite:
+            raise AppError(f"A imagem passa de {settings.MAX_IMAGEM_MB} MB")
+        extensao = armazenamento.detectar_extensao(dados)
+        if extensao is None:
+            raise AppError("Formato não aceito. Envie uma imagem JPEG, PNG, GIF ou WebP")
+
+        antiga = comunicado.imagem
+        novo = armazenamento.salvar(dados, extensao)
+        try:
+            self.comunicados.apply(comunicado, {"imagem": novo})
+            self._auditar(ator, "comunicado_imagem_definida", comunicado, {})
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            armazenamento.remover(novo)
+            raise
+        armazenamento.remover(antiga)
+        return self._reler(ator, comunicado.id)
+
+    def remover_imagem(self, ator: Usuario, comunicado_id: uuid.UUID) -> Linha:
+        comunicado = self._gerivel(ator, comunicado_id)
+        antiga = comunicado.imagem
+        if antiga is None:
+            raise NotFoundError("Este comunicado não tem imagem")
+        self.comunicados.apply(comunicado, {"imagem": None})
+        self._auditar(ator, "comunicado_imagem_removida", comunicado, {})
+        self.db.commit()
+        armazenamento.remover(antiga)
+        return self._reler(ator, comunicado.id)
+
+    def obter_imagem(self, ator: Usuario, comunicado_id: uuid.UUID):
+        """Arquivo da imagem; vale a mesma regra de visibilidade do comunicado."""
+        c = self.get(ator, comunicado_id)[0]
+        arquivo = armazenamento.caminho(c.imagem) if c.imagem else None
+        if arquivo is None:
+            raise NotFoundError("Este comunicado não tem imagem")
+        return arquivo, armazenamento.media_type(c.imagem)
 
     # ---------- internos ----------
 

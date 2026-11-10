@@ -42,6 +42,7 @@ from schemas.sociedade import (
 )
 from schemas.token import RefreshRequest, TokenPair
 from schemas.usuario import (
+    ConviteLinkOut,
     ConviteEmMassaOut,
     ConviteEmMassaRequest,
     EsqueciSenha,
@@ -54,6 +55,7 @@ from schemas.usuario import (
 )
 
 __all__ = [
+    "ConviteLinkOut",
     "ConviteEmMassaOut",
     "ConviteEmMassaRequest",
     "ComunicadoCreate",

@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     MAX_TENTATIVAS_LOGIN: int = 5
     RESET_TOKEN_EXPIRE_HOURS: int = 24
 
+    # Imagens enviadas (por enquanto em disco local, para testes). Caminho relativo é
+    # resolvido a partir da pasta `back/`.
+    UPLOAD_DIR: str = "uploads"
+    MAX_IMAGEM_MB: int = 5
+
     # Links enviados por e-mail (convite e redefinição de senha)
     FRONTEND_URL: str = "http://localhost:3000"
 
