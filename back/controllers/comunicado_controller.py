@@ -20,6 +20,7 @@ from repositories import (
     AuditoriaRepository,
     AudienciaLeitor,
     ComunicadoRepository,
+    EbdRepository,
     LiderancaRepository,
     MembroRepository,
     SociedadeRepository,
@@ -46,7 +47,9 @@ class ComunicadoController:
         membros: MembroRepository,
         audit: AuditoriaRepository,
         db: Session,
+        ebd: EbdRepository,
     ) -> None:
+        self.ebd = ebd
         self.comunicados = comunicados
         self.sociedades = sociedades
         self.lideranca = lideranca
@@ -84,6 +87,8 @@ class ComunicadoController:
             oficial=ator.perfil == PerfilUsuario.PRESBITERO
             or (no_rol and membro.oficio != Oficio.NENHUM),
             sociedades=frozenset(sociedades),
+            professor_ebd=ator.membro_id is not None
+            and self.ebd.e_professor(ator.igreja_id, ator.membro_id),
         )
 
     def _pode_gerir(self, ator: Usuario, publico: TipoPublico, sociedade_id: uuid.UUID | None) -> bool:

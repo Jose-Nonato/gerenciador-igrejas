@@ -9,7 +9,7 @@ from core.config import settings
 from core.exceptions import AppError
 from core.middleware import JWTAuthMiddleware
 from core.migracoes import aplicar_migracoes
-from views import auth_view, comunicado_view, familia_view, igreja_view, membro_view, sociedade_view, usuario_view
+from views import auth_view, comunicado_view, ebd_view, familia_view, igreja_view, membro_view, sociedade_view, usuario_view
 
 
 @asynccontextmanager
@@ -50,3 +50,4 @@ app.include_router(familia_view.router)
 app.include_router(membro_view.router)
 app.include_router(sociedade_view.router)
 app.include_router(comunicado_view.router)
+app.include_router(ebd_view.router)

@@ -1,4 +1,5 @@
 from models.comunicado import Comunicado
+from models.ebd import EbdAluno, EbdAula, EbdClasse, EbdPresenca, EbdProfessor
 from models.evento_eclesiastico import EventoEclesiastico
 from models.familia import Familia
 from models.igreja import Igreja
@@ -11,6 +12,11 @@ from models.usuario import Usuario
 
 __all__ = [
     "Comunicado",
+    "EbdAluno",
+    "EbdAula",
+    "EbdClasse",
+    "EbdPresenca",
+    "EbdProfessor",
     "EventoEclesiastico",
     "Familia",
     "Igreja",

@@ -1,5 +1,6 @@
 from repositories.auditoria_repository import AuditoriaRepository
 from repositories.comunicado_repository import AudienciaLeitor, ComunicadoRepository, esta_publicado
+from repositories.ebd_repository import EbdRepository
 from repositories.familia_repository import FamiliaRepository
 from repositories.igreja_repository import IgrejaRepository
 from repositories.membro_repository import EventoRepository, MembroRepository
@@ -13,6 +14,7 @@ __all__ = [
     "ComunicadoRepository",
     "esta_publicado",
     "AuditoriaRepository",
+    "EbdRepository",
     "EventoRepository",
     "FamiliaRepository",
     "IgrejaRepository",

@@ -40,6 +40,26 @@ from schemas.sociedade import (
     SociedadeUpdate,
     SocioUpdate,
 )
+from schemas.ebd import (
+    EbdAlunoCreate,
+    EbdAlunoOut,
+    EbdAlunoUpdate,
+    EbdAulaCreate,
+    EbdAulaDetalheOut,
+    EbdAulaOut,
+    EbdAulaUpdate,
+    EbdClasseCreate,
+    EbdClasseOut,
+    EbdClasseUpdate,
+    EbdFrequenciaAlunoOut,
+    EbdFrequenciaOut,
+    EbdPresencaItem,
+    EbdPresencaOut,
+    EbdPresencasLote,
+    EbdProfessorCreate,
+    EbdProfessorOut,
+    EbdProfessorUpdate,
+)
 from schemas.token import RefreshRequest, TokenPair
 from schemas.usuario import (
     ConviteLinkOut,
@@ -55,6 +75,24 @@ from schemas.usuario import (
 )
 
 __all__ = [
+    "EbdAlunoCreate",
+    "EbdAlunoOut",
+    "EbdAlunoUpdate",
+    "EbdAulaCreate",
+    "EbdAulaDetalheOut",
+    "EbdAulaOut",
+    "EbdAulaUpdate",
+    "EbdClasseCreate",
+    "EbdClasseOut",
+    "EbdClasseUpdate",
+    "EbdFrequenciaAlunoOut",
+    "EbdFrequenciaOut",
+    "EbdPresencaItem",
+    "EbdPresencaOut",
+    "EbdPresencasLote",
+    "EbdProfessorCreate",
+    "EbdProfessorOut",
+    "EbdProfessorUpdate",
     "ConviteLinkOut",
     "ConviteEmMassaOut",
     "ConviteEmMassaRequest",

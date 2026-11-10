@@ -19,13 +19,14 @@ class AudienciaLeitor:
     """A que públicos uma pessoa pertence. Decide o que ela lê no mural.
 
     `permite` (um comunicado em memória) e `condicao` (SQL das listagens) precisam dizer a
-    mesma coisa. O público "professores_ebd" não aparece aqui de propósito: ainda não há
-    cadastro de professores, então só quem vê tudo (admin e pastor) o enxerga.
+    mesma coisa. "professores_ebd" vale para quem é professor em exercício de uma classe
+    ativa da EBD.
     """
 
     ve_tudo: bool = False
     comungante: bool = False
     oficial: bool = False
+    professor_ebd: bool = False
     sociedades: frozenset[uuid.UUID] = field(default_factory=frozenset)
 
     def permite(self, publico: TipoPublico, sociedade_id: uuid.UUID | None) -> bool:
@@ -35,6 +36,8 @@ class AudienciaLeitor:
             return self.comungante
         if publico == TipoPublico.OFICIAIS:
             return self.oficial
+        if publico == TipoPublico.PROFESSORES_EBD:
+            return self.professor_ebd
         if publico == TipoPublico.SOCIEDADE:
             return sociedade_id in self.sociedades
         return False
@@ -47,6 +50,8 @@ class AudienciaLeitor:
             opcoes.append(Comunicado.publico == TipoPublico.COMUNGANTES)
         if self.oficial:
             opcoes.append(Comunicado.publico == TipoPublico.OFICIAIS)
+        if self.professor_ebd:
+            opcoes.append(Comunicado.publico == TipoPublico.PROFESSORES_EBD)
         if self.sociedades:
             opcoes.append(
                 and_(

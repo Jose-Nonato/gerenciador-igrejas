@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from controllers import (
     AuthController,
     ComunicadoController,
+    EbdController,
     FamiliaController,
     IgrejaController,
     MembroController,
@@ -22,6 +23,7 @@ from models.enums import PerfilUsuario
 from repositories import (
     AuditoriaRepository,
     ComunicadoRepository,
+    EbdRepository,
     EventoRepository,
     FamiliaRepository,
     IgrejaRepository,
@@ -92,6 +94,10 @@ def get_sociedade_controller(db: DbSession) -> SociedadeController:
     )
 
 
+def get_ebd_controller(db: DbSession) -> EbdController:
+    return EbdController(EbdRepository(db), MembroRepository(db), AuditoriaRepository(db), db)
+
+
 def get_comunicado_controller(db: DbSession) -> ComunicadoController:
     return ComunicadoController(
         ComunicadoRepository(db),
@@ -100,6 +106,7 @@ def get_comunicado_controller(db: DbSession) -> ComunicadoController:
         MembroRepository(db),
         AuditoriaRepository(db),
         db,
+        EbdRepository(db),
     )
 
 
@@ -154,4 +161,5 @@ IgrejaCtrl = Annotated[IgrejaController, Depends(get_igreja_controller)]
 FamiliaCtrl = Annotated[FamiliaController, Depends(get_familia_controller)]
 MembroCtrl = Annotated[MembroController, Depends(get_membro_controller)]
 SociedadeCtrl = Annotated[SociedadeController, Depends(get_sociedade_controller)]
+EbdCtrl = Annotated[EbdController, Depends(get_ebd_controller)]
 ComunicadoCtrl = Annotated[ComunicadoController, Depends(get_comunicado_controller)]
