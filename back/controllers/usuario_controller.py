@@ -146,6 +146,17 @@ class UsuarioController:
             raise ConflictError("Usuário não está com convite pendente")
         self.redefinicao.enviar_convite(user)
 
+    def link_convite(self, ator: Usuario, usuario_id: uuid.UUID) -> dict:
+        """Novo link de convite para o admin copiar. Não envia e-mail e invalida o link anterior."""
+        user = self._get(ator, usuario_id)
+        if user.status != StatusUsuario.CONVITE_PENDENTE:
+            raise ConflictError("Usuário não está com convite pendente")
+        link, expira_em = self.redefinicao.gerar_link_convite(user)
+        self.audit.registrar(
+            ator.igreja_id, ator.id, "link_convite_gerado", "usuario", user.id, {"email": user.email}
+        )
+        return {"link": link, "expira_em": expira_em}
+
     def atualizar(self, ator: Usuario, usuario_id: uuid.UUID, data: UsuarioUpdate) -> Usuario:
         user = self._get(ator, usuario_id)
         proprio = user.id == ator.id

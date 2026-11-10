@@ -86,3 +86,8 @@ class ConviteEmMassaOut(BaseModel):
     restantes: int = Field(description="Elegíveis ainda sem convite (chame de novo)")
     sem_email: int = Field(description="Membros no rol, sem conta e sem e-mail cadastrado")
     email_em_uso: int = Field(description="Sem conta, mas o e-mail já pertence a outro usuário")
+
+
+class ConviteLinkOut(BaseModel):
+    link: str = Field(description="Link de uso único para o convidado definir a senha")
+    expira_em: datetime

@@ -201,3 +201,36 @@ def test_convite_em_massa_so_do_admin_e_da_propria_igreja(client, auth, criar_ig
     r = client.post(URL, headers=hb, json={"simular": False})
     assert (r.json()["elegiveis"], r.json()["convidados"]) == (0, 0)  # não enxerga o rol de A
     assert mailer.enviados == []
+
+
+# ---------- link de convite para copiar ----------
+
+def test_admin_gera_link_de_convite_sem_enviar_email(client, h, mailer):
+    u = client.post("/usuarios", headers=h, json={"email": "novo@a.org"}).json()
+    enviados = len(mailer.enviados)
+
+    r = client.post(f"/usuarios/{u['id']}/link-convite", headers=h)
+    assert r.status_code == 200, r.text
+    link = r.json()["link"]
+    assert "/redefinir-senha?token=" in link and r.json()["expira_em"]
+    assert len(mailer.enviados) == enviados  # nada foi enviado
+    assert auditoria("link_convite_gerado")
+
+    # o link funciona e ativa a conta
+    token = link.split("token=")[1]
+    assert client.post("/auth/redefinir-senha", json={"token": token, "nova_senha": "Senha-Forte-123"}).status_code in (200, 204)
+
+
+def test_novo_link_invalida_o_anterior(client, h):
+    u = client.post("/usuarios", headers=h, json={"email": "novo@a.org"}).json()
+    antigo = client.post(f"/usuarios/{u['id']}/link-convite", headers=h).json()["link"].split("token=")[1]
+    client.post(f"/usuarios/{u['id']}/link-convite", headers=h)
+    r = client.post("/auth/redefinir-senha", json={"token": antigo, "nova_senha": "Senha-Forte-123"})
+    assert r.status_code == 400
+
+
+def test_link_so_para_convite_pendente_e_admin(client, h, admin, auth, criar_usuario, igreja):
+    assert client.post(f"/usuarios/{admin.id}/link-convite", headers=h).status_code == 409
+    u = client.post("/usuarios", headers=h, json={"email": "novo@a.org"}).json()
+    outro = criar_usuario(igreja, "p@a.org", perfil=PerfilUsuario.PRESBITERO)
+    assert client.post(f"/usuarios/{u['id']}/link-convite", headers=auth(outro)).status_code == 403

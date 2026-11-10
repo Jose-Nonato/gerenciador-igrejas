@@ -79,11 +79,18 @@ class RedefinicaoSenhaController:
             "usuario", user.id,
         )
 
-    def _enviar_link(self, user: Usuario, assunto: str, introducao: str) -> None:
+    def gerar_link_convite(self, user: Usuario) -> tuple[str, datetime]:
+        """Gera um novo link de convite sem enviar e-mail (o admin repassa por outro canal)."""
+        return self._novo_link(user)
+
+    def _novo_link(self, user: Usuario) -> tuple[str, datetime]:
         token = security.generate_reset_token()
         expira_em = datetime.now(timezone.utc) + timedelta(hours=settings.RESET_TOKEN_EXPIRE_HOURS)
         self.resets.create(user.igreja_id, user.id, security.hash_reset_token(token), expira_em)
-        link = f"{settings.FRONTEND_URL.rstrip('/')}/redefinir-senha?token={token}"
+        return f"{settings.FRONTEND_URL.rstrip('/')}/redefinir-senha?token={token}", expira_em
+
+    def _enviar_link(self, user: Usuario, assunto: str, introducao: str) -> None:
+        link, _ = self._novo_link(user)
         corpo = (
             f"{introducao}\n\n{link}\n\n"
             f"O link vale por {settings.RESET_TOKEN_EXPIRE_HOURS} horas e só pode ser usado uma vez."

@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from schemas import (
     ConviteEmMassaOut,
     ConviteEmMassaRequest,
+    ConviteLinkOut,
     MeuPerfilUpdate,
     UsuarioCreate,
     UsuarioOut,
@@ -50,3 +51,9 @@ def atualizar(usuario_id: uuid.UUID, data: UsuarioUpdate, ator: AdminUser, contr
 @router.post("/{usuario_id}/convite", status_code=status.HTTP_204_NO_CONTENT)
 def reenviar_convite(usuario_id: uuid.UUID, ator: AdminUser, controller: UsuarioCtrl):
     controller.reenviar_convite(ator, usuario_id)
+
+
+@router.post("/{usuario_id}/link-convite", response_model=ConviteLinkOut)
+def link_convite(usuario_id: uuid.UUID, ator: AdminUser, controller: UsuarioCtrl):
+    """Gera um novo link de convite para copiar (sem e-mail). O link anterior deixa de valer."""
+    return controller.link_convite(ator, usuario_id)

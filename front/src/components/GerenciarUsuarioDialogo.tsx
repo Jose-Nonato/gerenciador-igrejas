@@ -36,6 +36,7 @@ export function GerenciarUsuarioDialogo({
   const [erro, setErro] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [link, setLink] = useState<string | null>(null)
 
   // Só vai o que mudou: o backend recusa PATCH vazio e audita cada alteração
   const mudancas: AtualizacaoUsuario = {}
@@ -68,6 +69,27 @@ export function GerenciarUsuarioDialogo({
       setAviso('Novo convite enviado. O link anterior deixou de valer.')
     } catch (err) {
       setErro(err instanceof ApiError ? err.message : 'Não foi possível reenviar o convite.')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  async function copiarLink() {
+    setErro(null)
+    setAviso(null)
+    setEnviando(true)
+    try {
+      const { link: novo } = await usuariosApi.linkConvite(usuario.id)
+      setLink(novo)
+      try {
+        await navigator.clipboard.writeText(novo)
+        setAviso('Link copiado. Ele só pode ser usado uma vez e o link anterior deixou de valer.')
+      } catch {
+        // Sem permissão de área de transferência (ex.: HTTP): o campo abaixo permite copiar à mão
+        setAviso('Link gerado. Copie-o no campo abaixo; o link anterior deixou de valer.')
+      }
+    } catch (err) {
+      setErro(err instanceof ApiError ? err.message : 'Não foi possível gerar o link.')
     } finally {
       setEnviando(false)
     }
@@ -123,6 +145,16 @@ export function GerenciarUsuarioDialogo({
             Alterar e-mail, perfil ou bloquear/desativar encerra as sessões abertas deste usuário.
           </p>
         )}
+        {link && (
+          <input
+            className="campo-link"
+            readOnly
+            value={link}
+            aria-label="Link do convite"
+            onFocus={(e) => e.currentTarget.select()}
+            style={{ width: '100%', marginBottom: '0.75rem' }}
+          />
+        )}
         {aviso && <p className="aviso sucesso" role="status">{aviso}</p>}
         {erro && <p className="aviso erro" role="alert">{erro}</p>}
 
@@ -133,6 +165,11 @@ export function GerenciarUsuarioDialogo({
           {pendente && (
             <button type="button" className="botao secundario" onClick={reenviar} disabled={enviando}>
               Reenviar convite
+            </button>
+          )}
+          {pendente && (
+            <button type="button" className="botao secundario" onClick={copiarLink} disabled={enviando}>
+              Copiar link do convite
             </button>
           )}
           <button type="button" className="botao secundario" onClick={onFechar} disabled={enviando}>
