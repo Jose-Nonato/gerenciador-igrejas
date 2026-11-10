@@ -7,8 +7,7 @@ import { Campo } from './Campo'
 import { CampoSelect } from './CampoSelect'
 import { Dialogo } from './Dialogo'
 import { SeletorMembro } from './SeletorMembro'
-
-const hoje = () => new Date().toISOString().slice(0, 10)
+import { hojeLocal as hoje } from '../formatar'
 
 interface Props {
   sociedadeId: string

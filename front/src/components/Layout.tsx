@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { useAcessoEbd } from '../useAcessoEbd'
 import { useAcessoSociedades } from '../useAcessoSociedades'
 import { PERFIL } from '../rotulos'
 
@@ -8,6 +9,7 @@ export function Layout() {
   const navegar = useNavigate()
   const equipe = usuario?.perfil !== 'usuario'
   const sociedades = useAcessoSociedades()
+  const ebd = useAcessoEbd()
 
   async function sair() {
     await logout()
@@ -28,6 +30,7 @@ export function Layout() {
           <NavLink to="/comunicados">Comunicados</NavLink>
           {equipe && <NavLink to="/membros">Rol de membros</NavLink>}
           {sociedades.temAcesso && <NavLink to="/sociedades">Sociedades</NavLink>}
+          {ebd.temAcesso && <NavLink to="/ebd">EBD</NavLink>}
           {equipe && <NavLink to="/usuarios">Usuários</NavLink>}
           <NavLink to="/trocar-senha">Alterar senha</NavLink>
         </nav>

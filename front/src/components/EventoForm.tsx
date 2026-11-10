@@ -5,8 +5,8 @@ import { EFEITO_EVENTO, eventosPermitidos, exigeAta } from '../regrasEventos'
 import { FORMA_RECEPCAO, SITUACAO, TIPO_EVENTO } from '../rotulos'
 import { Campo } from './Campo'
 import { CampoSelect } from './CampoSelect'
+import { hojeLocal as hoje } from '../formatar'
 
-const hoje = () => new Date().toISOString().slice(0, 10)
 const vazioParaNulo = (v: string) => (v.trim() === '' ? null : v.trim())
 
 // Motivos de saída aceitos pelo backend (controllers/regras_rol.py)

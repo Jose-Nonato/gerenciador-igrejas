@@ -9,3 +9,8 @@ export function podeExcluirMembro(usuario: Usuario | null): boolean {
 export function gerenciaSociedades(usuario: Usuario | null): boolean {
   return usuario?.perfil === 'admin' || usuario?.perfil === 'pastor'
 }
+
+/** Espelha o backend: criar classes e definir professores da EBD é só de admin e pastor (GestorUser). */
+export function gerenciaEbd(usuario: Usuario | null): boolean {
+  return usuario?.perfil === 'admin' || usuario?.perfil === 'pastor'
+}

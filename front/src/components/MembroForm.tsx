@@ -6,6 +6,7 @@ import type { EstadoCivil, Familia, Membro, NovoMembro, Oficio, Rol, Sexo, Situa
 import { ESTADO_CIVIL, OFICIO, ROL, SEXO, SITUACAO } from '../rotulos'
 import { Campo } from './Campo'
 import { CampoSelect } from './CampoSelect'
+import { hojeLocal as hoje } from '../formatar'
 
 const NOVA_FAMILIA = '__nova'
 
@@ -44,7 +45,6 @@ function inicial(m?: Membro): Formulario {
 }
 
 const vazioParaNulo = (v: string) => (v.trim() === '' ? null : v.trim())
-const hoje = () => new Date().toISOString().slice(0, 10)
 
 interface Props {
   /** Presente = edição; rol, situação e ofício ficam bloqueados (mudam por eventos eclesiásticos) */

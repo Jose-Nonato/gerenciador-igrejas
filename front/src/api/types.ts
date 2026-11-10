@@ -323,3 +323,92 @@ export interface ConviteEmMassa {
   sem_email: number
   email_em_uso: number
 }
+
+// ---------- EBD (Escola Bíblica Dominical) ----------
+
+export interface EbdClasse {
+  id: string
+  nome: string
+  faixa_etaria: string | null
+  ativa: boolean
+  total_alunos: number
+  total_professores: number
+}
+
+export interface NovaEbdClasse {
+  nome: string
+  faixa_etaria?: string | null
+}
+
+export type AtualizacaoEbdClasse = Partial<NovaEbdClasse> & { ativa?: boolean }
+
+export interface EbdProfessor {
+  id: string
+  classe_id: string
+  membro_id: string
+  nome: string
+  inicio: string
+  /** Nulo = em exercício */
+  fim: string | null
+}
+
+export interface EbdAluno {
+  id: string
+  classe_id: string
+  membro_id: string | null
+  nome: string
+  entrou_em: string
+  saiu_em: string | null
+}
+
+/** Membro (`membro_id`) ou visitante (`nome_externo`) */
+export interface NovoEbdAluno {
+  membro_id?: string | null
+  nome_externo?: string | null
+}
+
+export interface EbdAula {
+  id: string
+  classe_id: string
+  data: string
+  licao: string | null
+  presentes: number
+  ausentes: number
+  justificados: number
+}
+
+export interface EbdItemPresenca {
+  aluno_id: string
+  status: StatusPresenca
+}
+
+export interface EbdPresencaDetalhe extends EbdItemPresenca {
+  nome: string
+}
+
+export interface EbdAulaDetalhe extends EbdAula {
+  presencas: EbdPresencaDetalhe[]
+}
+
+export interface NovaEbdAula {
+  data: string
+  licao?: string | null
+  presencas?: EbdItemPresenca[]
+}
+
+export interface EbdFrequenciaAluno {
+  aluno_id: string
+  nome: string
+  presentes: number
+  ausentes: number
+  justificados: number
+  sem_registro: number
+  percentual_presenca: number | null
+}
+
+export interface EbdFrequencia {
+  de: string | null
+  ate: string | null
+  total_aulas: number
+  alunos: EbdFrequenciaAluno[]
+}

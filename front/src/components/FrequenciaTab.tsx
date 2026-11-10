@@ -4,8 +4,7 @@ import { TIPO_SOCIO } from '../rotulos'
 import { useCarga } from '../useCarga'
 import { Campo } from './Campo'
 import { Carregando } from './Carregando'
-
-const hoje = () => new Date().toISOString().slice(0, 10)
+import { hojeLocal as hoje } from '../formatar'
 
 function percentual(v: number | null): string {
   return v === null ? '—' : `${v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%`

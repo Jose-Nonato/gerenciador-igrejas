@@ -1,5 +1,16 @@
 import { api, apiBlob } from './client'
 import type {
+  AtualizacaoEbdClasse,
+  EbdAluno,
+  EbdAula,
+  EbdAulaDetalhe,
+  EbdClasse,
+  EbdFrequencia,
+  EbdItemPresenca,
+  EbdProfessor,
+  NovaEbdAula,
+  NovaEbdClasse,
+  NovoEbdAluno,
   AtualizacaoMembro,
   AtualizacaoSocio,
   AtualizacaoComunicado,
@@ -158,4 +169,46 @@ export const comunicadosApi = {
   removerImagem: (id: string) => api<Comunicado>(`/comunicados/${id}/imagem`, { method: 'DELETE' }),
   /** A rota exige login, então a imagem vem como blob (um <img src> não envia o token) */
   imagem: (id: string) => apiBlob(`/comunicados/${id}/imagem`),
+}
+
+export const ebdApi = {
+  listar: () => api<EbdClasse[]>('/ebd/classes'),
+  obter: (id: string) => api<EbdClasse>(`/ebd/classes/${id}`),
+  criar: (dados: NovaEbdClasse) => api<EbdClasse>('/ebd/classes', { method: 'POST', json: dados }),
+  atualizar: (id: string, dados: AtualizacaoEbdClasse) =>
+    api<EbdClasse>(`/ebd/classes/${id}`, { method: 'PATCH', json: dados }),
+
+  /** Busca mínima (nome e nº do rol); vale também para o professor, que não vê o rol */
+  buscarMembros: (id: string, q: string) =>
+    api<MembroResumo[]>(`/ebd/classes/${id}/membros`, { query: { q } }),
+
+  professores: (id: string, incluirEncerrados = false) =>
+    api<EbdProfessor[]>(`/ebd/classes/${id}/professores`, {
+      query: { incluir_encerrados: incluirEncerrados ? 'true' : undefined },
+    }),
+  adicionarProfessor: (id: string, membroId: string) =>
+    api<EbdProfessor>(`/ebd/classes/${id}/professores`, { method: 'POST', json: { membro_id: membroId } }),
+  /** Encerra o exercício na data informada; o registro e o histórico permanecem */
+  encerrarProfessor: (id: string, professorId: string, fim: string) =>
+    api<EbdProfessor>(`/ebd/classes/${id}/professores/${professorId}`, { method: 'PATCH', json: { fim } }),
+
+  alunos: (id: string, incluirEx = false) =>
+    api<EbdAluno[]>(`/ebd/classes/${id}/alunos`, { query: { incluir_ex: incluirEx ? 'true' : undefined } }),
+  adicionarAluno: (id: string, dados: NovoEbdAluno) =>
+    api<EbdAluno>(`/ebd/classes/${id}/alunos`, { method: 'POST', json: dados }),
+  /** O aluno sai da classe (data de saída); a presença histórica é mantida */
+  removerAluno: (id: string, alunoId: string) =>
+    api<void>(`/ebd/classes/${id}/alunos/${alunoId}`, { method: 'DELETE' }),
+
+  aulas: (id: string) => api<EbdAula[]>(`/ebd/classes/${id}/aulas`),
+  aula: (id: string, aulaId: string) => api<EbdAulaDetalhe>(`/ebd/classes/${id}/aulas/${aulaId}`),
+  criarAula: (id: string, dados: NovaEbdAula) =>
+    api<EbdAulaDetalhe>(`/ebd/classes/${id}/aulas`, { method: 'POST', json: dados }),
+  atualizarAula: (id: string, aulaId: string, dados: { data?: string; licao?: string | null }) =>
+    api<EbdAulaDetalhe>(`/ebd/classes/${id}/aulas/${aulaId}`, { method: 'PATCH', json: dados }),
+  lancarPresencas: (id: string, aulaId: string, presencas: EbdItemPresenca[]) =>
+    api<EbdAulaDetalhe>(`/ebd/classes/${id}/aulas/${aulaId}/presencas`, { method: 'PUT', json: { presencas } }),
+
+  frequencia: (id: string, de?: string, ate?: string) =>
+    api<EbdFrequencia>(`/ebd/classes/${id}/frequencia`, { query: { de, ate } }),
 }

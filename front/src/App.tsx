@@ -15,6 +15,9 @@ import { NovoMembroPage } from './pages/NovoMembroPage'
 import { RedefinirSenhaPage } from './pages/RedefinirSenhaPage'
 import { ReuniaoPage } from './pages/ReuniaoPage'
 import { SociedadePage } from './pages/SociedadePage'
+import { EbdAulaPage } from './pages/EbdAulaPage'
+import { EbdClassePage } from './pages/EbdClassePage'
+import { EbdPage } from './pages/EbdPage'
 import { SociedadesPage } from './pages/SociedadesPage'
 import { TrocarSenhaPage } from './pages/TrocarSenhaPage'
 import { UsuariosPage } from './pages/UsuariosPage'
@@ -47,6 +50,11 @@ export default function App() {
               </Route>
               {/* Sociedades: admin e pastor veem todas; quem está na diretoria vê só a sua.
                   O backend decide por sociedade; a lista já vem filtrada. */}
+              {/* EBD: admin e pastor veem todas as classes; o professor vê só a sua. */}
+              <Route path="ebd" element={<EbdPage />} />
+              <Route path="ebd/:id" element={<EbdClassePage />} />
+              <Route path="ebd/:id/aulas/nova" element={<EbdAulaPage />} />
+              <Route path="ebd/:id/aulas/:aulaId" element={<EbdAulaPage />} />
               <Route path="sociedades" element={<SociedadesPage />} />
               <Route path="sociedades/:id" element={<SociedadePage />} />
               <Route path="sociedades/:id/reunioes/nova" element={<ReuniaoPage />} />

@@ -130,7 +130,7 @@ function Formulario({ comunicado, sociedades, gestor }: Props) {
           value={publico}
           onChange={(e) => setPublico(e.target.value as TipoPublico)}
           disabled={publicos.length === 1}
-          ajuda={publico === 'professores_ebd' ? 'Por enquanto só administrador e pastor veem este público.' : undefined}
+          ajuda={publico === 'professores_ebd' ? 'Professores em exercício de uma classe da EBD, além de administrador e pastor.' : undefined}
         >
           {publicos.map((v) => (
             <option key={v} value={v}>{PUBLICO[v]}</option>

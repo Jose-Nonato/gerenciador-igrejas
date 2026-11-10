@@ -5,11 +5,10 @@ import { sociedadesApi } from '../api/endpoints'
 import type { ItemPresenca, ReuniaoDetalhe, Sociedade, Socio, StatusPresenca } from '../api/types'
 import { Campo } from '../components/Campo'
 import { Carregando } from '../components/Carregando'
-import { formatarData } from '../formatar'
+import { formatarData, hojeLocal as hoje } from '../formatar'
 import { STATUS_PRESENCA, TIPO_SOCIO } from '../rotulos'
 import { useCarga } from '../useCarga'
 
-const hoje = () => new Date().toISOString().slice(0, 10)
 const STATUS: StatusPresenca[] = ['P', 'A', 'J']
 
 interface Linha {

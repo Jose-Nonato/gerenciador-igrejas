@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { sociedadesApi } from '../api/endpoints'
 import type { Lideranca } from '../api/types'
-import { formatarData } from '../formatar'
+import { formatarData, hojeLocal as hoje } from '../formatar'
 import { CARGO } from '../rotulos'
 import { useAcessoSociedades } from '../useAcessoSociedades'
 import { useCarga } from '../useCarga'
@@ -11,8 +11,6 @@ import { AdicionarLiderancaDialogo } from './AdicionarLiderancaDialogo'
 import { Campo } from './Campo'
 import { Carregando } from './Carregando'
 import { DialogoConfirmar } from './DialogoConfirmar'
-
-const hoje = () => new Date().toISOString().slice(0, 10)
 
 const nomeDoCargo = (l: Lideranca) => (l.cargo === 'outro' ? (l.cargo_descricao ?? CARGO.outro) : CARGO[l.cargo])
 
