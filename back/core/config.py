@@ -22,6 +22,21 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     MAX_IMAGEM_MB: int = 5
 
+    # Agendamento de conversas com pastor e presbíteros. Os horários dos oficiais são do
+    # relógio da igreja; no banco tudo fica em UTC.
+    FUSO_HORARIO: str = "America/Sao_Paulo"
+    ATENDIMENTO_ANTECEDENCIA_HORAS: int = 24
+    ATENDIMENTO_HORIZONTE_DIAS: int = 60
+    ATENDIMENTO_CANCELAMENTO_HORAS: int = 12
+    ATENDIMENTO_MAX_PENDENTES: int = 2
+    # Quantas horas antes da conversa o lembrete por e-mail é enviado
+    ATENDIMENTO_LEMBRETE_HORAS: int = 3
+
+    # Agendador embutido na API (hoje: lembretes por e-mail das conversas). Desligue se preferir
+    # rodar `python -m scripts.enviar_lembretes` fora da API, ou em testes.
+    AGENDADOR_ATIVO: bool = True
+    AGENDADOR_INTERVALO_SEGUNDOS: float = 900
+
     # Links enviados por e-mail (convite e redefinição de senha)
     FRONTEND_URL: str = "http://localhost:3000"
 

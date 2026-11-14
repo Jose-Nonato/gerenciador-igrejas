@@ -1,3 +1,4 @@
+from models.atendimento import Atendimento, BloqueioAgenda, DisponibilidadeAtendimento
 from models.comunicado import Comunicado
 from models.ebd import EbdAluno, EbdAula, EbdClasse, EbdPresenca, EbdProfessor
 from models.evento_eclesiastico import EventoEclesiastico
@@ -11,7 +12,10 @@ from models.token_redefinicao import TokenRedefinicao
 from models.usuario import Usuario
 
 __all__ = [
+    "Atendimento",
+    "BloqueioAgenda",
     "Comunicado",
+    "DisponibilidadeAtendimento",
     "EbdAluno",
     "EbdAula",
     "EbdClasse",

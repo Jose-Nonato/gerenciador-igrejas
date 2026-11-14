@@ -5,11 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 import models  # noqa: F401  (registra os modelos no metadata)
+from core.agendador import Agendador
 from core.config import settings
 from core.exceptions import AppError
 from core.middleware import JWTAuthMiddleware
 from core.migracoes import aplicar_migracoes
-from views import auth_view, comunicado_view, ebd_view, familia_view, igreja_view, membro_view, sociedade_view, usuario_view
+from scripts.enviar_lembretes import executar as enviar_lembretes
+from views import atendimento_view, auth_view, comunicado_view, ebd_view, familia_view, igreja_view, membro_view, sociedade_view, usuario_view
 
 
 @asynccontextmanager
@@ -17,7 +19,18 @@ async def lifespan(app: FastAPI):
     # O schema do banco é gerenciado pelo Alembic. Se a migração falhar, a API não sobe.
     if settings.AUTO_MIGRATE:
         aplicar_migracoes()
-    yield
+    agendador = None
+    if settings.AGENDADOR_ATIVO:
+        intervalo = settings.AGENDADOR_INTERVALO_SEGUNDOS
+        agendador = Agendador(
+            "lembretes", enviar_lembretes, intervalo, atraso_inicial_segundos=min(30, intervalo)
+        )
+        agendador.iniciar()
+    try:
+        yield
+    finally:
+        if agendador is not None:
+            await agendador.parar()
 
 
 app = FastAPI(title="Gerenciador de Igrejas", lifespan=lifespan)
@@ -51,3 +64,4 @@ app.include_router(membro_view.router)
 app.include_router(sociedade_view.router)
 app.include_router(comunicado_view.router)
 app.include_router(ebd_view.router)
+app.include_router(atendimento_view.router)

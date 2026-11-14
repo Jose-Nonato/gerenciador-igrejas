@@ -1,3 +1,4 @@
+from repositories.atendimento_repository import AtendimentoRepository
 from repositories.auditoria_repository import AuditoriaRepository
 from repositories.comunicado_repository import AudienciaLeitor, ComunicadoRepository, esta_publicado
 from repositories.ebd_repository import EbdRepository
@@ -10,6 +11,7 @@ from repositories.token_redefinicao_repository import TokenRedefinicaoRepository
 from repositories.usuario_repository import UsuarioRepository
 
 __all__ = [
+    "AtendimentoRepository",
     "AudienciaLeitor",
     "ComunicadoRepository",
     "esta_publicado",

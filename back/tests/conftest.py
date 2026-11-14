@@ -23,6 +23,8 @@ os.environ["DATABASE_URL"] = TEST_URL.render_as_string(hide_password=False)
 os.environ.setdefault("JWT_SECRET", _env["JWT_SECRET"])
 # Os testes montam o banco sozinhos (fixture _banco); a migração na inicialização só atrapalharia
 os.environ["AUTO_MIGRATE"] = "false"
+# O agendador embutido só roda nos testes que o ligam de propósito
+os.environ["AGENDADOR_ATIVO"] = "false"
 # Imagens dos testes vão para uma pasta temporária, nunca para a de desenvolvimento
 os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="gi-uploads-")
 

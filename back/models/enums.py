@@ -163,3 +163,28 @@ class StatusAgendamento(StrEnum):
     SUGERIDO = "sugerido"
     RECUSADO = "recusado"
     CANCELADO = "cancelado"
+
+
+class StatusAtendimento(StrEnum):
+    SOLICITADO = "solicitado"
+    CONFIRMADO = "confirmado"
+    RECUSADO = "recusado"
+    CANCELADO = "cancelado"
+    REALIZADO = "realizado"
+    FALTOU = "faltou"
+    # O oficial propôs outro horário e espera a resposta de quem pediu a conversa
+    REMARCACAO = "remarcacao"
+
+
+class ModalidadeAtendimento(StrEnum):
+    PRESENCIAL = "presencial"
+    ONLINE = "online"
+    VISITA = "visita"
+
+
+class CategoriaAtendimento(StrEnum):
+    ACONSELHAMENTO = "aconselhamento"
+    ORIENTACAO_ESPIRITUAL = "orientacao_espiritual"
+    FAMILIAR = "familiar"
+    VISITA = "visita"
+    OUTRO = "outro"

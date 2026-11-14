@@ -35,6 +35,14 @@ pip install -r requirements-dev.txt
 | `CORS_ORIGINS` | não | origens extras permitidas, separadas por vírgula |
 | `UPLOAD_DIR` | não | pasta das imagens dos comunicados, padrão `uploads` (relativa a `back/`; ignorada pelo git) |
 | `MAX_IMAGEM_MB` | não | tamanho máximo de cada imagem, padrão 5 |
+| `FUSO_HORARIO` | não | fuso do relógio da igreja para a agenda de conversas, padrão `America/Sao_Paulo` |
+| `ATENDIMENTO_ANTECEDENCIA_HORAS` | não | antecedência mínima para pedir uma conversa, padrão 24 |
+| `ATENDIMENTO_HORIZONTE_DIAS` | não | até quantos dias à frente se pode marcar, padrão 60 |
+| `ATENDIMENTO_CANCELAMENTO_HORAS` | não | prazo mínimo para o membro cancelar uma conversa confirmada, padrão 12 |
+| `ATENDIMENTO_MAX_PENDENTES` | não | pedidos aguardando resposta por membro, padrão 2 |
+| `ATENDIMENTO_LEMBRETE_HORAS` | não | quantas horas antes da conversa sai o lembrete por e-mail, padrão 3 |
+| `AGENDADOR_ATIVO` | não | padrão `true`: a API envia os lembretes das conversas sozinha; `false` para usar o script à parte |
+| `AGENDADOR_INTERVALO_SEGUNDOS` | não | de quanto em quanto tempo o agendador roda, padrão 900 |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | não | sem `SMTP_HOST` os e-mails só são registrados no log |
 
 ### Banco de dados
@@ -59,6 +67,20 @@ cd back
 uvicorn main:app --reload
 ```
 Documentação interativa em `http://localhost:8000/docs`.
+
+### Agenda de conversas e agendador embutido
+Os e-mails de pedido, confirmação, recusa, remarcação e cancelamento saem na hora. O **lembrete**
+de uma conversa confirmada (para o membro e para o oficial) sai pelo **agendador embutido na API**:
+ao subir, a API passa a rodar a tarefa sozinha a cada `AGENDADOR_INTERVALO_SEGUNDOS` (padrão 900, ou
+15 minutos), sem cron nem serviço à parte. Cada conversa é lembrada uma só vez, então vários
+processos da API juntos não duplicam o e-mail.
+
+Quem prefere agendar por fora (cron, Agendador de Tarefas do Windows) desliga o embutido com
+`AGENDADOR_ATIVO=false` e roda, a partir de `back/`:
+```bash
+python -m scripts.enviar_lembretes
+```
+Os e-mails não levam o assunto da conversa, que é sigiloso. Sem `SMTP_HOST` eles só vão para o log.
 
 ### Testes
 ```bash

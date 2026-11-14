@@ -1,3 +1,17 @@
+from schemas.atendimento import (
+    AtendimentoCreate,
+    AtendimentoOut,
+    BloqueioCreate,
+    BloqueioOut,
+    DisponibilidadeCreate,
+    DisponibilidadeOut,
+    DisponibilidadeUpdate,
+    HorarioOut,
+    JustificativaIn,
+    OficialOut,
+    RelatorioMesOut,
+    RemarcacaoIn,
+)
 from schemas.comunicado import (
     ComunicadoCreate,
     ComunicadoOut,
@@ -75,6 +89,18 @@ from schemas.usuario import (
 )
 
 __all__ = [
+    "AtendimentoCreate",
+    "AtendimentoOut",
+    "BloqueioCreate",
+    "BloqueioOut",
+    "RelatorioMesOut",
+    "RemarcacaoIn",
+    "DisponibilidadeCreate",
+    "DisponibilidadeOut",
+    "DisponibilidadeUpdate",
+    "HorarioOut",
+    "JustificativaIn",
+    "OficialOut",
     "EbdAlunoCreate",
     "EbdAlunoOut",
     "EbdAlunoUpdate",

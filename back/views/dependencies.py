@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from controllers import (
+    AtendimentoController,
     AuthController,
     ComunicadoController,
     EbdController,
@@ -21,6 +22,7 @@ from core.mailer import Mailer, get_mailer
 from models import Usuario
 from models.enums import PerfilUsuario
 from repositories import (
+    AtendimentoRepository,
     AuditoriaRepository,
     ComunicadoRepository,
     EbdRepository,
@@ -98,6 +100,12 @@ def get_ebd_controller(db: DbSession) -> EbdController:
     return EbdController(EbdRepository(db), MembroRepository(db), AuditoriaRepository(db), db)
 
 
+def get_atendimento_controller(db: DbSession, mailer: MailerDep) -> AtendimentoController:
+    return AtendimentoController(
+        AtendimentoRepository(db), MembroRepository(db), AuditoriaRepository(db), db, mailer
+    )
+
+
 def get_comunicado_controller(db: DbSession) -> ComunicadoController:
     return ComunicadoController(
         ComunicadoRepository(db),
@@ -162,4 +170,5 @@ FamiliaCtrl = Annotated[FamiliaController, Depends(get_familia_controller)]
 MembroCtrl = Annotated[MembroController, Depends(get_membro_controller)]
 SociedadeCtrl = Annotated[SociedadeController, Depends(get_sociedade_controller)]
 EbdCtrl = Annotated[EbdController, Depends(get_ebd_controller)]
+AtendimentoCtrl = Annotated[AtendimentoController, Depends(get_atendimento_controller)]
 ComunicadoCtrl = Annotated[ComunicadoController, Depends(get_comunicado_controller)]
