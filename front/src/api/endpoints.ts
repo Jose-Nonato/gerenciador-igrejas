@@ -1,5 +1,15 @@
 import { api, apiBlob } from './client'
 import type {
+  Bloqueio,
+  NovoBloqueio,
+  RelatorioMes,
+  Atendimento,
+  Disponibilidade,
+  Horario,
+  NovaDisponibilidade,
+  NovoAtendimento,
+  Oficial,
+  StatusAtendimento,
   AtualizacaoEbdClasse,
   EbdAluno,
   EbdAula,
@@ -211,4 +221,49 @@ export const ebdApi = {
 
   frequencia: (id: string, de?: string, ate?: string) =>
     api<EbdFrequencia>(`/ebd/classes/${id}/frequencia`, { query: { de, ate } }),
+}
+
+export const agendaApi = {
+  oficiais: () => api<Oficial[]>('/agenda/oficiais'),
+  horarios: (oficialId: string, de?: string, ate?: string) =>
+    api<Horario[]>(`/agenda/oficiais/${oficialId}/horarios`, { query: { de, ate } }),
+
+  /** Só o próprio oficial (pastor ou presbítero) tem disponibilidade */
+  disponibilidades: () => api<Disponibilidade[]>('/agenda/disponibilidades'),
+  criarDisponibilidade: (dados: NovaDisponibilidade) =>
+    api<Disponibilidade>('/agenda/disponibilidades', { method: 'POST', json: dados }),
+  atualizarDisponibilidade: (id: string, dados: Partial<NovaDisponibilidade> & { ativa?: boolean }) =>
+    api<Disponibilidade>(`/agenda/disponibilidades/${id}`, { method: 'PATCH', json: dados }),
+  removerDisponibilidade: (id: string) => api<void>(`/agenda/disponibilidades/${id}`, { method: 'DELETE' }),
+
+  solicitar: (dados: NovoAtendimento) => api<Atendimento>('/agenda/atendimentos', { method: 'POST', json: dados }),
+  meus: (status?: StatusAtendimento) => api<Atendimento[]>('/agenda/atendimentos/meus', { query: { status } }),
+  recebidos: (status?: StatusAtendimento) =>
+    api<Atendimento[]>('/agenda/atendimentos/recebidos', { query: { status } }),
+
+  confirmar: (id: string) => api<Atendimento>(`/agenda/atendimentos/${id}/confirmar`, { method: 'POST' }),
+  recusar: (id: string, justificativa: string | null) =>
+    api<Atendimento>(`/agenda/atendimentos/${id}/recusar`, { method: 'POST', json: { justificativa } }),
+  cancelar: (id: string, justificativa: string | null) =>
+    api<Atendimento>(`/agenda/atendimentos/${id}/cancelar`, { method: 'POST', json: { justificativa } }),
+  /** Quem pediu a conversa aceita o novo horário proposto (recusar é cancelar a conversa) */
+  aceitarRemarcacao: (id: string) =>
+    api<Atendimento>(`/agenda/atendimentos/${id}/aceitar-remarcacao`, { method: 'POST' }),
+  concluir: (id: string) => api<Atendimento>(`/agenda/atendimentos/${id}/concluir`, { method: 'POST' }),
+  faltou: (id: string) => api<Atendimento>(`/agenda/atendimentos/${id}/faltou`, { method: 'POST' }),
+}
+
+export const agendaOficialApi = {
+  /** Horários livres da própria agenda (para propor uma remarcação) */
+  meusHorarios: (de?: string, ate?: string) => api<Horario[]>('/agenda/meus-horarios', { query: { de, ate } }),
+
+  bloqueios: () => api<Bloqueio[]>('/agenda/bloqueios'),
+  criarBloqueio: (dados: NovoBloqueio) => api<Bloqueio>('/agenda/bloqueios', { method: 'POST', json: dados }),
+  removerBloqueio: (id: string) => api<void>(`/agenda/bloqueios/${id}`, { method: 'DELETE' }),
+
+  relatorio: (de?: string, ate?: string) => api<RelatorioMes[]>('/agenda/relatorio', { query: { de, ate } }),
+
+  /** O oficial propõe outro horário; nada muda até quem pediu a conversa aceitar */
+  remarcar: (id: string, inicio: string) =>
+    api<Atendimento>(`/agenda/atendimentos/${id}/remarcar`, { method: 'POST', json: { inicio } }),
 }

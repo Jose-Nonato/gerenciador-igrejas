@@ -412,3 +412,109 @@ export interface EbdFrequencia {
   total_aulas: number
   alunos: EbdFrequenciaAluno[]
 }
+
+// ---------- Agenda de conversas com pastor e presbíteros ----------
+
+export type StatusAtendimento =
+  | 'solicitado'
+  | 'confirmado'
+  | 'recusado'
+  | 'cancelado'
+  | 'realizado'
+  | 'faltou'
+  | 'remarcacao'
+export type ModalidadeAtendimento = 'presencial' | 'online' | 'visita'
+export type CategoriaAtendimento = 'aconselhamento' | 'orientacao_espiritual' | 'familiar' | 'visita' | 'outro'
+
+export interface Oficial {
+  id: string
+  nome: string
+  perfil: Perfil
+}
+
+/** `dia_semana`: 0 = segunda ... 6 = domingo. Horas no formato 'HH:MM:SS'. */
+export interface Disponibilidade {
+  id: string
+  oficial_id: string
+  dia_semana: number
+  hora_inicio: string
+  hora_fim: string
+  duracao_min: number
+  modalidade: ModalidadeAtendimento
+  local: string | null
+  ativa: boolean
+}
+
+export interface NovaDisponibilidade {
+  dia_semana: number
+  hora_inicio: string
+  hora_fim: string
+  duracao_min: number
+  modalidade: ModalidadeAtendimento
+  local?: string | null
+}
+
+export interface Horario {
+  inicio: string
+  fim: string
+  modalidade: ModalidadeAtendimento
+  local: string | null
+}
+
+export interface Atendimento {
+  id: string
+  solicitante_id: string
+  solicitante_nome: string
+  oficial_id: string
+  oficial_nome: string
+  inicio: string
+  fim: string
+  modalidade: ModalidadeAtendimento
+  local: string | null
+  status: StatusAtendimento
+  categoria: CategoriaAtendimento
+  assunto: string | null
+  justificativa: string | null
+  /** Só enquanto o oficial espera a resposta a uma remarcação (status `remarcacao`) */
+  proposta_inicio: string | null
+  proposta_fim: string | null
+  proposta_modalidade: ModalidadeAtendimento | null
+  proposta_local: string | null
+  criado_em: string
+}
+
+export interface NovoAtendimento {
+  oficial_id: string
+  inicio: string
+  categoria: CategoriaAtendimento
+  assunto?: string | null
+}
+
+// ---------- Agenda: bloqueios, remarcação e relatório ----------
+
+export interface Bloqueio {
+  id: string
+  /** Datas 'AAAA-MM-DD', inclusive */
+  de: string
+  ate: string
+  motivo: string | null
+  /** Conversas em aberto que caem no período (o oficial decide o que fazer com elas) */
+  atendimentos_afetados: number
+}
+
+export interface NovoBloqueio {
+  de: string
+  ate: string
+  motivo?: string | null
+}
+
+export interface RelatorioMes {
+  /** 'AAAA-MM' */
+  mes: string
+  total: number
+  realizados: number
+  faltas: number
+  cancelados: number
+  recusados: number
+  em_andamento: number
+}

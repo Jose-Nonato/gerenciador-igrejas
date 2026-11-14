@@ -224,3 +224,9 @@ textarea:focus-visible { outline: 3px solid var(--primaria); outline-offset: 2px
 .comunicado-imagem { display: block; max-width: 100%; max-height: 420px; object-fit: contain; border-radius: var(--raio); margin: 0 0 .75rem; background: var(--fundo); }
 
 .selo-imagem { margin-left: .5rem; font-weight: 400; }
+
+/* Agenda de conversas */
+.selo.status-atendimento-confirmado, .selo.status-atendimento-realizado { background: var(--ok-fundo); color: var(--ok); border-color: transparent; }
+.selo.status-atendimento-solicitado { background: var(--fundo); color: var(--primaria); }
+.selo.status-atendimento-recusado, .selo.status-atendimento-cancelado, .selo.status-atendimento-faltou { background: var(--erro-fundo); color: var(--erro); border-color: transparent; }
+.selo.status-atendimento-remarcacao { background: var(--fundo); color: var(--primaria); border-color: var(--primaria); }

@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
+import { AgendaPage } from './pages/AgendaPage'
 import { ComunicadoFormPage } from './pages/ComunicadoFormPage'
 import { ComunicadosPage } from './pages/ComunicadosPage'
 import { EditarMembroPage } from './pages/EditarMembroPage'
@@ -40,6 +41,8 @@ export default function App() {
               <Route path="comunicados/gerenciar" element={<GerenciarComunicadosPage />} />
               <Route path="comunicados/novo" element={<ComunicadoFormPage />} />
               <Route path="comunicados/:id/editar" element={<ComunicadoFormPage />} />
+              {/* Agenda de conversas: membro com conta pede horário; pastor e presbíteros respondem. */}
+              <Route path="agenda" element={<AgendaPage />} />
               <Route path="trocar-senha" element={<TrocarSenhaPage />} />
               <Route element={<RequireAuth perfis={['admin', 'pastor', 'presbitero']} />}>
                 <Route path="membros" element={<MembrosPage />} />

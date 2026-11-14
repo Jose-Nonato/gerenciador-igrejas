@@ -1,4 +1,7 @@
 import type {
+  CategoriaAtendimento,
+  ModalidadeAtendimento,
+  StatusAtendimento,
   CargoLideranca,
   CategoriaPost,
   EstadoCivil,
@@ -134,3 +137,31 @@ export const PUBLICO: Record<TipoPublico, string> = {
 export function rotuloPublico(c: { publico: TipoPublico; sociedade_sigla: string | null }): string {
   return c.publico === 'sociedade' ? `Sociedade ${c.sociedade_sigla ?? ''}`.trim() : PUBLICO[c.publico]
 }
+
+export const STATUS_ATENDIMENTO: Record<StatusAtendimento, string> = {
+  solicitado: 'Aguardando resposta',
+  confirmado: 'Confirmado',
+  recusado: 'Recusado',
+  cancelado: 'Cancelado',
+  realizado: 'Realizado',
+  faltou: 'Não compareceu',
+  remarcacao: 'Novo horário proposto',
+}
+
+export const MODALIDADE: Record<ModalidadeAtendimento, string> = {
+  presencial: 'Presencial',
+  online: 'Online',
+  visita: 'Visita',
+}
+
+export const CATEGORIA_ATENDIMENTO: Record<CategoriaAtendimento, string> = {
+  aconselhamento: 'Aconselhamento',
+  orientacao_espiritual: 'Orientação espiritual',
+  familiar: 'Assunto familiar',
+  visita: 'Pedido de visita',
+  outro: 'Outro assunto',
+}
+
+export const DIA_SEMANA = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo']
+
+export const MES_ABREVIADO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']

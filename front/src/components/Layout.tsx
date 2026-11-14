@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { temAgenda } from '../permissoes'
 import { useAcessoEbd } from '../useAcessoEbd'
 import { useAcessoSociedades } from '../useAcessoSociedades'
 import { PERFIL } from '../rotulos'
@@ -31,6 +32,7 @@ export function Layout() {
           {equipe && <NavLink to="/membros">Rol de membros</NavLink>}
           {sociedades.temAcesso && <NavLink to="/sociedades">Sociedades</NavLink>}
           {ebd.temAcesso && <NavLink to="/ebd">EBD</NavLink>}
+          {temAgenda(usuario) && <NavLink to="/agenda">Agenda</NavLink>}
           {equipe && <NavLink to="/usuarios">Usuários</NavLink>}
           <NavLink to="/trocar-senha">Alterar senha</NavLink>
         </nav>
